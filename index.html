@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pelacak Pengeluaran Bulanan | Expense Tracker</title>
+  <title>Pelacak Pengeluaran Bulanan | PengeluaranKu</title>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,8 +13,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -27,21 +25,17 @@
     }
   </script>
   <style>
-    /* Styling scrollbar minimalis */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
-
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
     }
-
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 9999px;
     }
-
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
@@ -52,10 +46,9 @@
 
   <!-- Header & Navigasi -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
           <i data-lucide="wallet" class="w-5 h-5"></i>
         </div>
         <div>
@@ -64,71 +57,79 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <!-- Status Indikator Sinkronisasi Cloud -->
-        <button id="btn-open-sync-modal"
-          class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-          title="Klik untuk mengatur sinkronisasi Supabase">
-          <span class="relative flex h-2.5 w-2.5">
-            <span id="sync-ping"
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 hidden"></span>
-            <span id="sync-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400"></span>
-          </span>
-          <span id="sync-status-text">Cloud Sync</span>
+      <!-- Area Akun Pengguna & Aksi -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Tombol Buka Konfigurasi Firebase jika belum diset -->
+        <button id="btn-open-config" class="p-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors" title="Pengaturan Firebase">
+          <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
 
-        <!-- Tombol Sync Manual Cepat -->
-        <button id="btn-manual-sync"
-          class="p-2 text-slate-600 hover:text-emerald-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors shadow-sm"
-          title="Refresh / Ambil data terbaru dari cloud">
-          <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
+        <!-- Container Info Akun Google (Jika Sudah Login) -->
+        <div id="user-profile-container" class="hidden items-center gap-2.5 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200/70">
+          <img id="user-avatar" src="" alt="Avatar" class="w-7 h-7 rounded-full border border-slate-300 object-cover" />
+          <div class="hidden sm:block text-left">
+            <p id="user-name" class="text-xs font-bold text-slate-800 leading-tight">User</p>
+            <p id="user-email" class="text-[10px] text-slate-500 truncate max-w-[120px]">user@gmail.com</p>
+          </div>
+          <button id="btn-logout" class="p-1 text-slate-400 hover:text-rose-600 transition-colors ml-1" title="Keluar / Logout">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Tombol Login Google (Jika Belum Login) -->
+        <button id="btn-login-google" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Masuk Akun Google</span>
         </button>
 
         <!-- Export CSV -->
-        <button id="btn-export-csv"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-          <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
-          <span class="hidden sm:inline">Export</span>
+        <button id="btn-export-csv" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span>Export</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- ================= NOTIFIKASI / STATUS BAR AKUN ================= -->
+  <div id="auth-status-bar" class="bg-emerald-50 border-b border-emerald-200/80 px-4 py-2 text-center text-xs font-medium text-emerald-800 hidden">
+    <div class="max-w-6xl mx-auto flex items-center justify-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>Sinkronisasi Google Aktif: Data pengeluaran Anda otomatis tersinkron di semua perangkat.</span>
+    </div>
+  </div>
+
+  <div id="auth-warning-bar" class="bg-amber-50 border-b border-amber-200/80 px-4 py-2.5 text-center text-xs font-medium text-amber-900">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2">
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+        <span>Anda belum masuk dengan Akun Google. Data saat ini hanya tersimpan di perangkat ini.</span>
+      </div>
+      <button id="btn-inline-login" class="underline font-bold hover:text-amber-950">
+        Klik di sini untuk Masuk dengan Google &rarr;
+      </button>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full flex-grow space-y-6">
 
-    <!-- Banner Peringatan jika Cloud Sync Belum Diaktifkan -->
-    <div id="banner-cloud-alert"
-      class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-sm">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
-          <i data-lucide="cloud-off" class="w-4 h-4"></i>
-        </div>
-        <div>
-          <span class="font-bold">Mode Penyimpanan Lokal:</span> Data baru tersimpan di browser ini. Hubungkan akun
-          Supabase agar bisa otomatis sinkron di semua HP & Laptop Anda!
-        </div>
-      </div>
-      <button id="btn-connect-now"
-        class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
-        Hubungkan Supabase
-      </button>
-    </div>
-
     <!-- Bar Pemilih Bulan & Target Budget -->
-    <div
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
       <div class="flex items-center gap-2">
         <i data-lucide="calendar" class="w-5 h-5 text-emerald-600"></i>
         <span class="text-sm font-semibold text-slate-700">Periode Bulan:</span>
-        <input type="month" id="filter-period-month"
-          class="border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 cursor-pointer" />
+        <input type="month" id="filter-period-month" class="border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 cursor-pointer" />
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="btn-edit-budget"
-          class="text-xs sm:text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5">
-          <i data-lucide="settings" class="w-4 h-4"></i>
+        <button id="btn-edit-budget" class="text-xs sm:text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5">
+          <i data-lucide="target" class="w-4 h-4"></i>
           <span>Atur Target Budget</span>
         </button>
       </div>
@@ -137,8 +138,7 @@
     <!-- Dashboard Ringkasan (Cards) -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
       <!-- Total Pengeluaran -->
-      <div
-        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pengeluaran Bulan Ini</span>
           <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -150,8 +150,7 @@
       </div>
 
       <!-- Target Budget -->
-      <div
-        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Target Budget</span>
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -163,12 +162,10 @@
       </div>
 
       <!-- Sisa Budget -->
-      <div
-        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sisa Budget</span>
-          <div id="remaining-icon-container"
-            class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div id="remaining-icon-container" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <i data-lucide="wallet-cards" class="w-4 h-4"></i>
           </div>
         </div>
@@ -187,8 +184,7 @@
         <span id="budget-percentage" class="font-bold text-slate-900">0%</span>
       </div>
       <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-        <div id="budget-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500"
-          style="width: 0%"></div>
+        <div id="budget-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
       </div>
       <div class="flex justify-between text-xs text-slate-400 pt-0.5">
         <span>0%</span>
@@ -213,15 +209,13 @@
           <!-- Tanggal -->
           <div>
             <label for="tx-date" class="block text-xs font-semibold text-slate-700 mb-1">Tanggal</label>
-            <input type="date" id="tx-date" required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50" />
+            <input type="date" id="tx-date" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50" />
           </div>
 
           <!-- Kategori -->
           <div>
             <label for="tx-category" class="block text-xs font-semibold text-slate-700 mb-1">Kategori</label>
-            <select id="tx-category" required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50 cursor-pointer">
+            <select id="tx-category" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50 cursor-pointer">
               <option value="Makan">🍽️ Makan & Minum</option>
               <option value="Transport">🚗 Transportasi</option>
               <option value="Kebutuhan Pokok">🛒 Kebutuhan Pokok</option>
@@ -234,24 +228,20 @@
           <!-- Nama Pengeluaran -->
           <div>
             <label for="tx-name" class="block text-xs font-semibold text-slate-700 mb-1">Nama Pengeluaran</label>
-            <input type="text" id="tx-name" placeholder="Contoh: Makan Siang Nasi Padang" required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
+            <input type="text" id="tx-name" placeholder="Contoh: Makan Siang Nasi Padang" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
           </div>
 
           <!-- Nominal Pengeluaran (Auto IDR) -->
           <div>
             <label for="tx-amount" class="block text-xs font-semibold text-slate-700 mb-1">Nominal (Rupiah)</label>
             <div class="relative">
-              <span
-                class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
-              <input type="text" id="tx-amount" inputmode="numeric" placeholder="0" required
-                class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
+              <input type="text" id="tx-amount" inputmode="numeric" placeholder="0" required class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
             </div>
           </div>
 
           <!-- Tombol Simpan -->
-          <button type="submit" id="btn-submit-tx"
-            class="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-[0.99]">
+          <button type="submit" id="btn-submit-tx" class="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-[0.99]">
             <i data-lucide="check" class="w-4 h-4"></i>
             <span>Simpan Transaksi</span>
           </button>
@@ -271,8 +261,7 @@
 
           <!-- Filter Kategori & Search -->
           <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            <select id="filter-category"
-              class="border border-slate-300 text-slate-700 text-xs font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 cursor-pointer">
+            <select id="filter-category" class="border border-slate-300 text-slate-700 text-xs font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 cursor-pointer">
               <option value="Semua">Semua Kategori</option>
               <option value="Makan">🍽️ Makan</option>
               <option value="Transport">🚗 Transport</option>
@@ -282,14 +271,13 @@
               <option value="Lainnya">📦 Lainnya</option>
             </select>
 
-            <input type="text" id="filter-search" placeholder="Cari transaksi..."
-              class="border border-slate-300 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 placeholder-slate-400 w-32 sm:w-36" />
+            <input type="text" id="filter-search" placeholder="Cari transaksi..." class="border border-slate-300 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 placeholder-slate-400 w-32 sm:w-36" />
           </div>
         </div>
 
         <!-- Daftar List Transaksi -->
         <div class="mt-4 flex-grow overflow-y-auto max-h-[460px] pr-1 space-y-2.5" id="tx-list-container">
-          <!-- Item transaksi akan dirender dinamis via JavaScript -->
+          <!-- Transaksi dirender via JavaScript -->
         </div>
 
         <!-- State Kosong (Empty State) -->
@@ -298,15 +286,13 @@
             <i data-lucide="receipt" class="w-7 h-7"></i>
           </div>
           <p class="text-sm font-semibold text-slate-700">Belum ada transaksi</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-xs">Tambahkan pengeluaran baru menggunakan formulir di sebelah
-            kiri.</p>
+          <p class="text-xs text-slate-400 mt-1 max-w-xs">Tambahkan pengeluaran baru menggunakan formulir di sebelah kiri.</p>
         </div>
 
         <!-- Footer Card Riwayat -->
         <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <span id="filtered-summary-text">Menampilkan 0 transaksi</span>
-          <button id="btn-clear-all"
-            class="text-rose-600 hover:text-rose-700 hover:underline font-medium inline-flex items-center gap-1 transition-colors">
+          <button id="btn-clear-all" class="text-rose-600 hover:text-rose-700 hover:underline font-medium inline-flex items-center gap-1 transition-colors">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             <span>Hapus Semua Data</span>
           </button>
@@ -319,15 +305,12 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-400">
-    <p>&copy; PengeluaranKu &bull; Data tersinkronisasi otomatis via Supabase Cloud.</p>
+    <p>&copy; PengeluaranKu &bull; Masuk dengan Akun Google untuk sinkronisasi multi-device.</p>
   </footer>
 
   <!-- ================= MODAL ATUR TARGET BUDGET ================= -->
-  <div id="budget-modal"
-    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div
-      class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4 transform transition-all scale-95 opacity-0 duration-200"
-      id="budget-modal-content">
+  <div id="budget-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4 transform transition-all scale-95 opacity-0 duration-200" id="budget-modal-content">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <i data-lucide="target" class="w-5 h-5 text-emerald-600"></i>
@@ -338,145 +321,94 @@
         </button>
       </div>
       <div>
-        <label for="input-monthly-budget" class="block text-xs font-semibold text-slate-700 mb-1">Target Pengeluaran
-          Maksimal (Rp)</label>
+        <label for="input-monthly-budget" class="block text-xs font-semibold text-slate-700 mb-1">Target Pengeluaran Maksimal (Rp)</label>
         <div class="relative">
-          <span
-            class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
-          <input type="text" id="input-monthly-budget" inputmode="numeric" placeholder="Contoh: 3.000.000"
-            class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
+          <input type="text" id="input-monthly-budget" inputmode="numeric" placeholder="Contoh: 3.000.000" class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
         </div>
-        <p class="text-[11px] text-slate-400 mt-1">Budget ini akan disimpan dan disinkronkan ke seluruh device Anda.</p>
+        <p class="text-[11px] text-slate-400 mt-1">Budget ini akan disimpan dan disinkronkan ke akun Google Anda.</p>
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button id="btn-cancel-budget"
-          class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+        <button id="btn-cancel-budget" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
           Batal
         </button>
-        <button id="btn-save-budget"
-          class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm">
+        <button id="btn-save-budget" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm">
           Simpan Budget
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ================= MODAL PENGATURAN SUPABASE CLOUD SYNC ================= -->
-  <div id="sync-modal"
-    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div
-      class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto transform transition-all scale-95 opacity-0 duration-200"
-      id="sync-modal-content">
+  <!-- ================= MODAL PENGATURAN KONEKSI FIREBASE ================= -->
+  <div id="config-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto transform transition-all scale-95 opacity-0 duration-200" id="config-modal-content">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-            <i data-lucide="cloud" class="w-5 h-5"></i>
+          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i data-lucide="flame" class="w-5 h-5 text-amber-600"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-800 leading-tight">Pengaturan Supabase Cloud Sync</h3>
-            <p class="text-xs text-slate-400">Hubungkan database gratis Anda agar sinkron di HP & Laptop</p>
+            <h3 class="text-base font-bold text-slate-800 leading-tight">Konfigurasi Firebase Google</h3>
+            <p class="text-xs text-slate-400">Hubungkan Firebase Project untuk login Google 1-klik</p>
           </div>
         </div>
-        <button id="btn-close-sync-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button id="btn-close-config-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <!-- Form Input Credential -->
-      <div class="space-y-3 text-xs">
-        <div>
-          <label for="supabase-url" class="block font-semibold text-slate-700 mb-1">Supabase Project URL</label>
-          <input type="text" id="supabase-url" placeholder="https://xyzcompany.supabase.co"
-            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50" />
-        </div>
-
-        <div>
-          <label for="supabase-anon-key" class="block font-semibold text-slate-700 mb-1">Supabase Anon Key (Public API
-            Key)</label>
-          <input type="password" id="supabase-anon-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50" />
-        </div>
+      <div class="text-xs text-slate-600 space-y-2">
+        <p>Cukup tempel objek <b>firebaseConfig</b> dari Firebase Console Anda:</p>
+        <textarea id="input-firebase-config" rows="7" placeholder='{&#10;  "apiKey": "AIzaSy...",&#10;  "authDomain": "proyekmu.firebaseapp.com",&#10;  "projectId": "proyekmu",&#10;  "storageBucket": "proyekmu.appspot.com",&#10;  "messagingSenderId": "...",&#10;  "appId": "..."&#10;}' class="w-full p-3 font-mono text-[11px] border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 text-slate-800"></textarea>
       </div>
 
-      <!-- Panduan Cepat Supabase SQL Setup -->
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2 text-slate-600">
-        <div class="font-semibold text-slate-800 flex items-center gap-1.5">
-          <i data-lucide="terminal" class="w-3.5 h-3.5 text-emerald-600"></i>
-          Panduan 1 Menit:
-        </div>
-        <ol class="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
-          <li>Buka <a href="https://supabase.com" target="_blank"
-              class="text-emerald-600 underline font-medium">supabase.com</a>, buat akun & project baru (gratis).</li>
-          <li>Masuk ke menu <b>SQL Editor</b> di Supabase, lalu jalankan script tabel di bawah.</li>
-          <li>Salin <b>Project URL</b> dan <b>Anon Key</b> dari menu <i>Project Settings &gt; API</i>, tempel di atas.
-          </li>
+      <!-- Langkah ringkas -->
+      <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] text-slate-600 space-y-1.5">
+        <span class="font-bold text-slate-700">Langkah 1x di console.firebase.google.com:</span>
+        <ol class="list-decimal list-inside space-y-0.5">
+          <li>Buat Project di Firebase Console.</li>
+          <li>Di menu <b>Authentication &gt; Sign-in method</b>, aktifkan <b>Google</b>.</li>
+          <li>Di menu <b>Firestore Database</b>, klik <b>Create database</b> (Pilih <i>Start in test mode</i>).</li>
+          <li>Di <b>Project Settings</b>, tambahkan Web App dan salin <code>firebaseConfig</code> ke kotak di atas.</li>
         </ol>
-
-        <!-- Script SQL Copy Box -->
-        <div class="relative mt-2">
-          <pre id="sql-script"
-            class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto select-all max-h-28">-- Jalankan di SQL Editor Supabase:
-CREATE TABLE IF NOT EXISTS pengeluaranku_transactions (
-  id TEXT PRIMARY KEY,
-  date TEXT NOT NULL,
-  category TEXT NOT NULL,
-  name TEXT NOT NULL,
-  amount NUMERIC NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pengeluaranku_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Buka izin akses anonim (untuk website pribadi)
-ALTER TABLE pengeluaranku_transactions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public All" ON pengeluaranku_transactions FOR ALL USING (true) WITH CHECK (true);
-
-ALTER TABLE pengeluaranku_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (true) WITH CHECK (true);</pre>
-          <button id="btn-copy-sql"
-            class="absolute top-2 right-2 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[10px] font-medium transition-colors">
-            Salin SQL
-          </button>
-        </div>
       </div>
 
-      <!-- Tombol Aksi Modal -->
-      <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-        <button id="btn-disconnect-supabase" class="text-xs text-rose-600 hover:text-rose-700 hover:underline hidden">
-          Putuskan Koneksi
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button id="btn-cancel-config" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Batal
         </button>
-        <div class="flex items-center gap-2 ml-auto">
-          <button id="btn-cancel-sync"
-            class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-            Tutup
-          </button>
-          <button id="btn-save-sync"
-            class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
-            <i data-lucide="check" class="w-3.5 h-3.5"></i>
-            <span>Simpan & Sinkronkan</span>
-          </button>
-        </div>
+        <button id="btn-save-config" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm">
+          Simpan Konfigurasi
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notifikasi Ringan -->
-  <div id="toast"
-    class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
+  <!-- Toast Notifikasi -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
     <span id="toast-message">Berhasil disimpan</span>
   </div>
 
-  <!-- ================= LOGIKA JAVASCRIPT LENGKAP ================= -->
-  <script>
-    /**
-     * PENGELUARANKU - MULTI-DEVICE EXPENSE TRACKER
-     * Didukung sinkronisasi Supabase Realtime + LocalStorage Fallback
-     */
+  <!-- ================= FIREBASE SDK & JAVASCRIPT ================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      signInWithPopup, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      setDoc, 
+      deleteDoc, 
+      onSnapshot, 
+      getDoc 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     // --- 1. KONFIGURASI KATEGORI ---
     const CATEGORY_META = {
@@ -488,16 +420,17 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       'Lainnya': { icon: 'package', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' }
     };
 
-    // --- 2. STATE STORAGE & CREDENTIALS ---
-    const STORAGE_KEY_TRANSACTIONS = 'pengeluaranku_transactions_v2';
-    const STORAGE_KEY_BUDGET = 'pengeluaranku_monthly_budget_v2';
-    const STORAGE_KEY_SUPABASE_URL = 'pengeluaranku_supabase_url';
-    const STORAGE_KEY_SUPABASE_KEY = 'pengeluaranku_supabase_key';
+    // --- 2. STATE APLIKASI ---
+    const STORAGE_KEY_FIREBASE = 'pengeluaranku_firebase_config';
+    const STORAGE_KEY_LOCAL_TX = 'pengeluaranku_transactions_local';
+    const STORAGE_KEY_LOCAL_BUDGET = 'pengeluaranku_budget_local';
 
     let transactions = [];
     let monthlyBudget = 3000000;
-    let supabaseClient = null;
-    let isConnectedToCloud = false;
+    let currentUser = null;
+    let db = null;
+    let auth = null;
+    let unsubscribeFirestore = null;
 
     // --- 3. ELEMEN DOM ---
     const filterPeriodMonth = document.getElementById('filter-period-month');
@@ -526,26 +459,25 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     const btnClearAll = document.getElementById('btn-clear-all');
     const btnExportCsv = document.getElementById('btn-export-csv');
 
-    // Cloud Sync DOM Elements
-    const btnOpenSyncModal = document.getElementById('btn-open-sync-modal');
-    const btnManualSync = document.getElementById('btn-manual-sync');
-    const refreshIcon = document.getElementById('refresh-icon');
-    const syncDot = document.getElementById('sync-dot');
-    const syncPing = document.getElementById('sync-ping');
-    const syncStatusText = document.getElementById('sync-status-text');
-    const bannerCloudAlert = document.getElementById('banner-cloud-alert');
-    const btnConnectNow = document.getElementById('btn-connect-now');
+    // Elemen Auth & Header
+    const btnLoginGoogle = document.getElementById('btn-login-google');
+    const btnInlineLogin = document.getElementById('btn-inline-login');
+    const btnLogout = document.getElementById('btn-logout');
+    const userProfileContainer = document.getElementById('user-profile-container');
+    const userAvatar = document.getElementById('user-avatar');
+    const userName = document.getElementById('user-name');
+    const userEmail = document.getElementById('user-email');
+    const authStatusBar = document.getElementById('auth-status-bar');
+    const authWarningBar = document.getElementById('auth-warning-bar');
 
-    const syncModal = document.getElementById('sync-modal');
-    const syncModalContent = document.getElementById('sync-modal-content');
-    const btnCloseSyncModal = document.getElementById('btn-close-sync-modal');
-    const btnCancelSync = document.getElementById('btn-cancel-sync');
-    const btnSaveSync = document.getElementById('btn-save-sync');
-    const btnDisconnectSupabase = document.getElementById('btn-disconnect-supabase');
-    const supabaseUrlInput = document.getElementById('supabase-url');
-    const supabaseKeyInput = document.getElementById('supabase-anon-key');
-    const btnCopySql = document.getElementById('btn-copy-sql');
-    const sqlScriptEl = document.getElementById('sql-script');
+    // Modal Config Firebase
+    const btnOpenConfig = document.getElementById('btn-open-config');
+    const configModal = document.getElementById('config-modal');
+    const configModalContent = document.getElementById('config-modal-content');
+    const btnCloseConfigModal = document.getElementById('btn-close-config-modal');
+    const btnCancelConfig = document.getElementById('btn-cancel-config');
+    const btnSaveConfig = document.getElementById('btn-save-config');
+    const inputFirebaseConfig = document.getElementById('input-firebase-config');
 
     // Modal Budget
     const budgetModal = document.getElementById('budget-modal');
@@ -560,10 +492,9 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     const toastEl = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
 
-    // --- 4. HELPER UTILITAS ---
+    // --- 4. FORMATTERS & UTILITAS ---
     function formatIDR(number) {
-      const num = Number(number) || 0;
-      return 'Rp ' + num.toLocaleString('id-ID');
+      return 'Rp ' + (Number(number) || 0).toLocaleString('id-ID');
     }
 
     function parseRupiahInput(value) {
@@ -589,277 +520,208 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }, 2500);
     }
 
-    function updateSyncIndicator(status) {
-      if (status === 'connected') {
-        isConnectedToCloud = true;
-        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500';
-        syncPing.classList.remove('hidden');
-        syncStatusText.textContent = 'Cloud Terhubung';
-        btnOpenSyncModal.className = 'inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
-        bannerCloudAlert.classList.add('hidden');
-        btnDisconnectSupabase.classList.remove('hidden');
-      } else if (status === 'syncing') {
-        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500';
-        syncStatusText.textContent = 'Menyinkronkan...';
-        refreshIcon.classList.add('animate-spin');
-      } else {
-        isConnectedToCloud = false;
-        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400';
-        syncPing.classList.add('hidden');
-        syncStatusText.textContent = 'Lokal (Belum Sync)';
-        btnOpenSyncModal.className = 'inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200';
-        bannerCloudAlert.classList.remove('hidden');
-        btnDisconnectSupabase.classList.add('hidden');
-        refreshIcon.classList.remove('animate-spin');
-      }
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
     }
 
-    // --- 5. INITIALIZE SUPABASE CLIENT ---
-    function initSupabase() {
-      const url = localStorage.getItem(STORAGE_KEY_SUPABASE_URL);
-      const key = localStorage.getItem(STORAGE_KEY_SUPABASE_KEY);
-
-      if (url && key && window.supabase) {
-        try {
-          supabaseClient = window.supabase.createClient(url, key);
-          supabaseUrlInput.value = url;
-          supabaseKeyInput.value = key;
-          updateSyncIndicator('connected');
-          subscribeRealtime();
-          fetchFromCloud();
-          return true;
-        } catch (err) {
-          console.error('Inisialisasi Supabase gagal:', err);
-          updateSyncIndicator('disconnected');
-          return false;
-        }
-      } else {
-        updateSyncIndicator('disconnected');
-        return false;
+    // --- 5. INITIALIZE FIREBASE & AUTH ---
+    function initFirebase() {
+      const configStr = localStorage.getItem(STORAGE_KEY_FIREBASE);
+      if (!configStr) {
+        loadLocalFallback();
+        return;
       }
-    }
-
-    // Ambil Data Terbaru dari Cloud Supabase
-    async function fetchFromCloud(silent = false) {
-      if (!supabaseClient) return;
 
       try {
-        updateSyncIndicator('syncing');
+        const config = JSON.parse(configStr);
+        const app = initializeApp(config);
+        auth = getAuth(app);
+        db = getFirestore(app);
 
-        // 1. Fetch Transaksi
-        const { data: txData, error: txError } = await supabaseClient
-          .from('pengeluaranku_transactions')
-          .select('*')
-          .order('date', { ascending: false });
+        // Pantau Status Login Google
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            currentUser = user;
+            updateUIAuthLoggedIn(user);
+            setupFirestoreRealtime(user.uid);
+          } else {
+            currentUser = null;
+            updateUIAuthLoggedOut();
+            loadLocalFallback();
+          }
+        });
+      } catch (err) {
+        console.error('Inisialisasi Firebase gagal:', err);
+        loadLocalFallback();
+      }
+    }
 
-        if (txError) throw txError;
+    function updateUIAuthLoggedIn(user) {
+      btnLoginGoogle.classList.add('hidden');
+      userProfileContainer.classList.remove('hidden');
+      userProfileContainer.classList.add('flex');
+      userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}`;
+      userName.textContent = user.displayName || 'Pengguna';
+      userEmail.textContent = user.email || '';
 
-        // 2. Fetch Pengaturan Budget
-        const { data: settingsData, error: settingsError } = await supabaseClient
-          .from('pengeluaranku_settings')
-          .select('*')
-          .eq('key', 'monthly_budget')
-          .maybeSingle();
+      authStatusBar.classList.remove('hidden');
+      authWarningBar.classList.add('hidden');
+      showToast(`Selamat datang, ${user.displayName || 'Pengguna'}!`);
+    }
 
-        if (settingsError) throw settingsError;
+    function updateUIAuthLoggedOut() {
+      if (unsubscribeFirestore) unsubscribeFirestore();
+      btnLoginGoogle.classList.remove('hidden');
+      userProfileContainer.classList.add('hidden');
+      userProfileContainer.classList.remove('flex');
 
-        if (settingsData && settingsData.value) {
-          monthlyBudget = parseInt(settingsData.value, 10) || monthlyBudget;
-          localStorage.setItem(STORAGE_KEY_BUDGET, monthlyBudget.toString());
+      authStatusBar.classList.add('hidden');
+      authWarningBar.classList.remove('hidden');
+    }
+
+    // --- 6. FIRESTORE REALTIME SYNC (MULTI-DEVICE) ---
+    function setupFirestoreRealtime(uid) {
+      if (!db) return;
+
+      // 1. Ambil target budget user
+      const userSettingsRef = doc(db, 'users', uid, 'settings', 'budget');
+      onSnapshot(userSettingsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          monthlyBudget = Number(docSnap.data().amount) || 3000000;
+          renderApp();
         }
+      });
 
-        // Simpan ke local
-        if (txData) {
-          transactions = txData.map(item => ({
-            id: item.id,
-            date: item.date,
-            name: item.name,
-            category: item.category,
-            amount: Number(item.amount)
-          }));
-          localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
-        }
+      // 2. Realtime listener transaksi user
+      const txCollectionRef = collection(db, 'users', uid, 'transactions');
+      unsubscribeFirestore = onSnapshot(txCollectionRef, (snapshot) => {
+        const cloudTx = [];
+        snapshot.forEach((doc) => {
+          cloudTx.push({ id: doc.id, ...doc.data() });
+        });
 
-        updateSyncIndicator('connected');
-        refreshIcon.classList.remove('animate-spin');
+        // Urutkan berdasarkan tanggal terbaru
+        transactions = cloudTx.map(t => ({
+          ...t,
+          amount: Number(t.amount)
+        }));
+
         renderApp();
-        if (!silent) showToast('Data tersinkronkan dengan Cloud');
-      } catch (err) {
-        console.error('Gagal mengambil data dari Supabase:', err);
-        updateSyncIndicator('connected');
-        refreshIcon.classList.remove('animate-spin');
-        if (!silent) showToast('Gagal sinkron cloud (cek koneksi/tabel)');
+      }, (err) => {
+        console.error('Error Firestore snapshot:', err);
+      });
+    }
+
+    // --- 7. OPERASI TRANSAKSI & BUDGET ---
+    async function addTransaction(newTx) {
+      if (currentUser && db) {
+        try {
+          const docRef = doc(db, 'users', currentUser.uid, 'transactions', newTx.id);
+          await setDoc(docRef, {
+            date: newTx.date,
+            category: newTx.category,
+            name: newTx.name,
+            amount: newTx.amount,
+            createdAt: new Date().toISOString()
+          });
+          showToast('Tersimpan & tersinkron ke Akun Google');
+        } catch (e) {
+          console.error('Gagal simpan ke Firestore:', e);
+          showToast('Gagal simpan ke cloud');
+        }
+      } else {
+        // Fallback simpan lokal jika belum login
+        transactions.unshift(newTx);
+        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify(transactions));
+        renderApp();
+        showToast('Tersimpan di perangkat lokal');
       }
     }
 
-    // Subscribe ke Realtime Changes (Jika HP mengedit, Laptop otomatis update tanpa refresh)
-    function subscribeRealtime() {
-      if (!supabaseClient) return;
-
-      try {
-        supabaseClient
-          .channel('public:pengeluaranku_changes')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'pengeluaranku_transactions' }, payload => {
-            console.log('Realtime transaksi terdeteksi:', payload);
-            fetchFromCloud(true);
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'pengeluaranku_settings' }, payload => {
-            console.log('Realtime budget terdeteksi:', payload);
-            fetchFromCloud(true);
-          })
-          .subscribe();
-      } catch (err) {
-        console.warn('Realtime subscription tidak tersedia:', err);
+    async function deleteTransaction(id) {
+      if (currentUser && db) {
+        try {
+          await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
+          showToast('Transaksi dihapus dari cloud');
+        } catch (e) {
+          console.error('Gagal hapus transaksi di Firestore:', e);
+        }
+      } else {
+        transactions = transactions.filter(t => t.id !== id);
+        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify(transactions));
+        renderApp();
+        showToast('Transaksi dihapus');
       }
     }
 
-    // --- 6. OPERASI DATA (LOCAL + CLOUD) ---
+    async function clearAllTransactions() {
+      if (currentUser && db) {
+        try {
+          for (const tx of transactions) {
+            await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', tx.id));
+          }
+          showToast('Semua transaksi akun dihapus');
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        transactions = [];
+        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify([]));
+        renderApp();
+        showToast('Semua transaksi lokal dihapus');
+      }
+    }
 
-    function loadLocalState() {
+    async function updateBudget(newBudget) {
+      monthlyBudget = newBudget;
+      if (currentUser && db) {
+        try {
+          const budgetDocRef = doc(db, 'users', currentUser.uid, 'settings', 'budget');
+          await setDoc(budgetDocRef, { amount: newBudget, updatedAt: new Date().toISOString() });
+          showToast('Target budget tersinkron ke Akun Google');
+        } catch (e) {
+          console.error('Gagal update budget di Firestore:', e);
+        }
+      } else {
+        localStorage.setItem(STORAGE_KEY_LOCAL_BUDGET, newBudget.toString());
+        renderApp();
+        showToast('Budget lokal diperbarui');
+      }
+    }
+
+    function loadLocalFallback() {
       try {
-        const storedTx = localStorage.getItem(STORAGE_KEY_TRANSACTIONS) || localStorage.getItem('pengeluaranku_transactions_v1');
-        if (storedTx) {
-          transactions = JSON.parse(storedTx);
+        const stored = localStorage.getItem(STORAGE_KEY_LOCAL_TX) || localStorage.getItem('pengeluaranku_transactions_v1');
+        if (stored) {
+          transactions = JSON.parse(stored);
         } else {
           // Data sampel awal
           const today = new Date();
           const yyyy = today.getFullYear();
           const mm = String(today.getMonth() + 1).padStart(2, '0');
           transactions = [
-            { id: 'tx_sample_1', date: `${yyyy}-${mm}-02`, name: 'Belanja Mingguan Supermarket', category: 'Kebutuhan Pokok', amount: 350000 },
-            { id: 'tx_sample_2', date: `${yyyy}-${mm}-05`, name: 'Makan Malam Bersama Teman', category: 'Makan', amount: 125000 },
-            { id: 'tx_sample_3', date: `${yyyy}-${mm}-10`, name: 'Bensin Kendaraan', category: 'Transport', amount: 50000 },
-            { id: 'tx_sample_4', date: `${yyyy}-${mm}-12`, name: 'Langganan Internet & Listrik', category: 'Tagihan', amount: 450000 }
+            { id: 'tx_sample_1', date: `${yyyy}-${mm}-02`, name: 'Belanja Supermarket', category: 'Kebutuhan Pokok', amount: 350000 },
+            { id: 'tx_sample_2', date: `${yyyy}-${mm}-05`, name: 'Makan Bersama', category: 'Makan', amount: 125000 },
+            { id: 'tx_sample_3', date: `${yyyy}-${mm}-10`, name: 'Bensin Kendaraan', category: 'Transport', amount: 50000 }
           ];
         }
-
-        const storedBudget = localStorage.getItem(STORAGE_KEY_BUDGET) || localStorage.getItem('pengeluaranku_monthly_budget_v1');
-        if (storedBudget) {
-          monthlyBudget = parseInt(storedBudget, 10) || 3000000;
-        }
-      } catch (err) {
-        console.error('Gagal membaca local storage:', err);
+        monthlyBudget = parseInt(localStorage.getItem(STORAGE_KEY_LOCAL_BUDGET), 10) || 3000000;
+        renderApp();
+      } catch (e) {
+        console.error(e);
       }
     }
 
-    async function addTransaction(newTx) {
-      // 1. Simpan di memori & local storage
-      transactions.unshift(newTx);
-      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
-      renderApp();
-
-      // 2. Jika terhubung cloud, simpan ke Supabase
-      if (supabaseClient) {
-        updateSyncIndicator('syncing');
-        try {
-          const { error } = await supabaseClient
-            .from('pengeluaranku_transactions')
-            .insert([{
-              id: newTx.id,
-              date: newTx.date,
-              category: newTx.category,
-              name: newTx.name,
-              amount: newTx.amount
-            }]);
-
-          if (error) throw error;
-          updateSyncIndicator('connected');
-          showToast('Tersimpan & tersinkron ke cloud');
-        } catch (err) {
-          console.error('Gagal simpan ke cloud:', err);
-          updateSyncIndicator('connected');
-          showToast('Tersimpan lokal (cloud gagal tersambung)');
-        }
-      } else {
-        showToast('Pengeluaran berhasil disimpan (lokal)');
-      }
-    }
-
-    async function deleteTransaction(id) {
-      transactions = transactions.filter(t => t.id !== id);
-      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
-      renderApp();
-
-      if (supabaseClient) {
-        updateSyncIndicator('syncing');
-        try {
-          const { error } = await supabaseClient
-            .from('pengeluaranku_transactions')
-            .delete()
-            .eq('id', id);
-
-          if (error) throw error;
-          updateSyncIndicator('connected');
-          showToast('Transaksi dihapus dari cloud & device');
-        } catch (err) {
-          console.error('Gagal hapus di cloud:', err);
-          updateSyncIndicator('connected');
-          showToast('Dihapus dari device (cloud gagal)');
-        }
-      } else {
-        showToast('Transaksi berhasil dihapus');
-      }
-    }
-
-    async function clearAllTransactions() {
-      transactions = [];
-      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify([]));
-      renderApp();
-
-      if (supabaseClient) {
-        updateSyncIndicator('syncing');
-        try {
-          const { error } = await supabaseClient
-            .from('pengeluaranku_transactions')
-            .delete()
-            .neq('id', 'placeholder_keep_empty');
-
-          if (error) throw error;
-          updateSyncIndicator('connected');
-          showToast('Semua data dibersihkan dari cloud');
-        } catch (err) {
-          console.error('Gagal membersihkan cloud:', err);
-          updateSyncIndicator('connected');
-        }
-      } else {
-        showToast('Semua riwayat pengeluaran lokal telah dihapus');
-      }
-    }
-
-    async function updateBudget(newBudget) {
-      monthlyBudget = newBudget;
-      localStorage.setItem(STORAGE_KEY_BUDGET, newBudget.toString());
-      renderApp();
-
-      if (supabaseClient) {
-        updateSyncIndicator('syncing');
-        try {
-          const { error } = await supabaseClient
-            .from('pengeluaranku_settings')
-            .upsert({ key: 'monthly_budget', value: newBudget.toString() });
-
-          if (error) throw error;
-          updateSyncIndicator('connected');
-          showToast('Target budget tersinkron ke semua device');
-        } catch (err) {
-          console.error('Gagal update budget di cloud:', err);
-          updateSyncIndicator('connected');
-          showToast('Budget diperbarui lokal');
-        }
-      } else {
-        showToast('Target budget bulanan diperbarui');
-      }
-    }
-
-    // --- 7. RENDER DASHBOARD & TRANSAKSI ---
-
+    // --- 8. RENDER APP UI ---
     function renderApp() {
-      const selectedMonth = filterPeriodMonth.value; // YYYY-MM
+      const selectedMonth = filterPeriodMonth.value;
       const selectedCategory = filterCategory.value;
       const searchQuery = filterSearch.value.trim().toLowerCase();
 
-      // Hitung Pengeluaran Bulan Ini
-      const currentMonthTx = transactions.filter(tx => tx.date.startsWith(selectedMonth));
+      // Hitung Pengeluaran Bulan Terpilih
+      const currentMonthTx = transactions.filter(tx => tx.date && tx.date.startsWith(selectedMonth));
       const totalExpense = currentMonthTx.reduce((sum, tx) => sum + tx.amount, 0);
       const remainingBudget = monthlyBudget - totalExpense;
       const usagePercentage = monthlyBudget > 0 ? Math.round((totalExpense / monthlyBudget) * 100) : 0;
@@ -902,19 +764,16 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
 
       // Filter Riwayat List
       const filteredTx = transactions.filter(tx => {
-        const matchesMonth = selectedMonth ? tx.date.startsWith(selectedMonth) : true;
+        const matchesMonth = selectedMonth ? tx.date && tx.date.startsWith(selectedMonth) : true;
         const matchesCategory = selectedCategory === 'Semua' || tx.category === selectedCategory;
-        const matchesSearch = searchQuery === '' || tx.name.toLowerCase().includes(searchQuery);
+        const matchesSearch = searchQuery === '' || (tx.name && tx.name.toLowerCase().includes(searchQuery));
         return matchesMonth && matchesCategory && matchesSearch;
       });
 
       filteredTx.sort((a, b) => new Date(b.date) - new Date(a.date));
-
       renderTransactionList(filteredTx);
 
-      if (window.lucide) {
-        window.lucide.createIcons();
-      }
+      if (window.lucide) window.lucide.createIcons();
     }
 
     function renderTransactionList(items) {
@@ -940,7 +799,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
               <i data-lucide="${meta.icon}" class="w-4 h-4"></i>
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-semibold text-slate-800 truncate">${escapeHTML(tx.name)}</p>
+              <p class="text-sm font-semibold text-slate-800 truncate">${escapeHTML(tx.name || '')}</p>
               <div class="flex items-center gap-2 mt-0.5">
                 <span class="text-[11px] font-medium text-slate-500">${formatDateID(tx.date)}</span>
                 <span class="text-slate-300">&bull;</span>
@@ -951,9 +810,9 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
           <div class="flex items-center gap-3 flex-shrink-0 ml-3">
             <span class="text-sm sm:text-base font-bold text-slate-900">- ${formatIDR(tx.amount)}</span>
             <button 
-              onclick="handleDeleteTransaction('${tx.id}')" 
+              data-delete-id="${tx.id}" 
               title="Hapus transaksi"
-              class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none"
+              class="btn-delete-item p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none"
             >
               <i data-lucide="trash" class="w-4 h-4"></i>
             </button>
@@ -962,33 +821,33 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
 
         txListContainer.appendChild(itemEl);
       });
-    }
 
-    function escapeHTML(str) {
-      return str.replace(/[&<>'"]/g,
-        tag => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[tag] || tag)
-      );
-    }
-
-    // Auto format Rupiah di input
-    function setupCurrencyInput(inputElement) {
-      inputElement.addEventListener('input', function () {
-        const rawValue = parseRupiahInput(this.value);
-        this.value = rawValue === 0 ? '' : rawValue.toLocaleString('id-ID');
+      // Bind event click delete
+      document.querySelectorAll('.btn-delete-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-delete-id');
+          const target = transactions.find(t => t.id === id);
+          if (confirm(`Hapus pengeluaran "${target ? target.name : 'ini'}"?`)) {
+            deleteTransaction(id);
+          }
+        });
       });
     }
 
-    // --- 8. EVENT HANDLERS ---
+    // Input nominal otomatis format Rupiah
+    txAmountInput.addEventListener('input', function() {
+      const raw = parseRupiahInput(this.value);
+      this.value = raw === 0 ? '' : raw.toLocaleString('id-ID');
+    });
 
-    formTransaction.addEventListener('submit', function (e) {
+    inputMonthlyBudget.addEventListener('input', function() {
+      const raw = parseRupiahInput(this.value);
+      this.value = raw === 0 ? '' : raw.toLocaleString('id-ID');
+    });
+
+    // Submit Transaksi Baru
+    formTransaction.addEventListener('submit', function(e) {
       e.preventDefault();
-
       const date = txDateInput.value;
       const category = txCategoryInput.value;
       const name = txNameInput.value.trim();
@@ -1008,7 +867,6 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       };
 
       addTransaction(newTx);
-
       txNameInput.value = '';
       txAmountInput.value = '';
 
@@ -1019,41 +877,20 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }
     });
 
-    window.handleDeleteTransaction = function (id) {
-      const target = transactions.find(t => t.id === id);
-      const confirmText = target ? `Hapus pengeluaran "${target.name}"?` : 'Hapus transaksi ini?';
-
-      if (confirm(confirmText)) {
-        deleteTransaction(id);
-      }
-    };
-
-    btnClearAll.addEventListener('click', function () {
-      if (transactions.length === 0) {
-        alert('Tidak ada transaksi untuk dihapus.');
-        return;
-      }
-
-      if (confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data transaksi? Tindakan ini akan menghapus riwayat di lokal maupun cloud.')) {
+    btnClearAll.addEventListener('click', function() {
+      if (transactions.length === 0) return alert('Tidak ada transaksi.');
+      if (confirm('PERINGATAN: Apakah Anda yakin ingin menghapus semua riwayat transaksi?')) {
         clearAllTransactions();
       }
     });
 
-    btnExportCsv.addEventListener('click', function () {
-      if (transactions.length === 0) {
-        alert('Belum ada data transaksi untuk diexport.');
-        return;
-      }
-
+    // Export CSV
+    btnExportCsv.addEventListener('click', function() {
+      if (transactions.length === 0) return alert('Belum ada transaksi.');
       const headers = ['ID', 'Tanggal', 'Kategori', 'Nama Pengeluaran', 'Nominal (IDR)'];
       const rows = transactions.map(tx => [
-        `"${tx.id}"`,
-        `"${tx.date}"`,
-        `"${tx.category}"`,
-        `"${tx.name.replace(/"/g, '""')}"`,
-        tx.amount
+        `"${tx.id}"`, `"${tx.date}"`, `"${tx.category}"`, `"${(tx.name || '').replace(/"/g, '""')}"`, tx.amount
       ]);
-
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -1064,11 +901,80 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast('File CSV berhasil diunduh');
     });
 
-    // Modal Budget Events
-    function openBudgetModal() {
+    // --- 9. EVENT HANDLERS GOOGLE AUTH & CONFIG ---
+    async function handleLoginGoogle() {
+      if (!auth) {
+        openConfigModal();
+        return;
+      }
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error('Login gagal:', err);
+        alert('Login Google dibatalkan atau gagal: ' + err.message);
+      }
+    }
+
+    btnLoginGoogle.addEventListener('click', handleLoginGoogle);
+    btnInlineLogin.addEventListener('click', handleLoginGoogle);
+
+    btnLogout.addEventListener('click', async () => {
+      if (confirm('Apakah Anda ingin keluar dari akun Google?')) {
+        if (auth) await signOut(auth);
+        showToast('Berhasil keluar');
+      }
+    });
+
+    // Modal Konfigurasi Firebase
+    function openConfigModal() {
+      inputFirebaseConfig.value = localStorage.getItem(STORAGE_KEY_FIREBASE) || '';
+      configModal.classList.remove('hidden');
+      setTimeout(() => {
+        configModalContent.classList.remove('scale-95', 'opacity-0');
+        configModalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeConfigModal() {
+      configModalContent.classList.remove('scale-100', 'opacity-100');
+      configModalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => configModal.classList.add('hidden'), 200);
+    }
+
+    btnOpenConfig.addEventListener('click', openConfigModal);
+    btnCloseConfigModal.addEventListener('click', closeConfigModal);
+    btnCancelConfig.addEventListener('click', closeConfigModal);
+
+    btnSaveConfig.addEventListener('click', () => {
+      const raw = inputFirebaseConfig.value.trim();
+      if (!raw) return alert('Mohon masukkan konfigurasi firebase!');
+
+      try {
+        // Bersihkan jika user menempel `const firebaseConfig = { ... };`
+        let clean = raw;
+        if (clean.includes('{')) {
+          clean = clean.substring(clean.indexOf('{'), clean.lastIndexOf('}') + 1);
+        }
+        // Pastikan format valid JSON jika user copas object JS
+        const parsed = Function(`"use strict";return (${clean})`)();
+        if (!parsed.apiKey || !parsed.projectId) {
+          throw new Error('Objek tidak memiliki apiKey atau projectId.');
+        }
+
+        localStorage.setItem(STORAGE_KEY_FIREBASE, JSON.stringify(parsed));
+        closeConfigModal();
+        showToast('Konfigurasi Firebase disimpan! Memulai ulang...');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (e) {
+        alert('Format konfigurasi tidak valid: ' + e.message);
+      }
+    });
+
+    // Modal Budget
+    btnEditBudget.addEventListener('click', () => {
       inputMonthlyBudget.value = monthlyBudget.toLocaleString('id-ID');
       budgetModal.classList.remove('hidden');
       setTimeout(() => {
@@ -1076,120 +982,22 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
         budgetModalContent.classList.add('scale-100', 'opacity-100');
         inputMonthlyBudget.focus();
       }, 10);
-    }
+    });
 
     function closeBudgetModal() {
       budgetModalContent.classList.remove('scale-100', 'opacity-100');
       budgetModalContent.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        budgetModal.classList.add('hidden');
-      }, 200);
+      setTimeout(() => budgetModal.classList.add('hidden'), 200);
     }
 
-    btnEditBudget.addEventListener('click', openBudgetModal);
     btnCloseBudgetModal.addEventListener('click', closeBudgetModal);
     btnCancelBudget.addEventListener('click', closeBudgetModal);
-    budgetModal.addEventListener('click', e => { if (e.target === budgetModal) closeBudgetModal(); });
 
-    btnSaveBudget.addEventListener('click', function () {
+    btnSaveBudget.addEventListener('click', () => {
       const newBudget = parseRupiahInput(inputMonthlyBudget.value);
-      if (newBudget <= 0) {
-        alert('Masukkan nominal target budget yang valid!');
-        return;
-      }
+      if (newBudget <= 0) return alert('Masukkan target budget yang valid!');
       updateBudget(newBudget);
       closeBudgetModal();
-    });
-
-    // --- 9. SUPABASE MODAL & SYNC EVENTS ---
-
-    function openSyncModal() {
-      supabaseUrlInput.value = localStorage.getItem(STORAGE_KEY_SUPABASE_URL) || '';
-      supabaseKeyInput.value = localStorage.getItem(STORAGE_KEY_SUPABASE_KEY) || '';
-      syncModal.classList.remove('hidden');
-      setTimeout(() => {
-        syncModalContent.classList.remove('scale-95', 'opacity-0');
-        syncModalContent.classList.add('scale-100', 'opacity-100');
-      }, 10);
-    }
-
-    function closeSyncModal() {
-      syncModalContent.classList.remove('scale-100', 'opacity-100');
-      syncModalContent.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        syncModal.classList.add('hidden');
-      }, 200);
-    }
-
-    btnOpenSyncModal.addEventListener('click', openSyncModal);
-    btnConnectNow.addEventListener('click', openSyncModal);
-    btnCloseSyncModal.addEventListener('click', closeSyncModal);
-    btnCancelSync.addEventListener('click', closeSyncModal);
-    syncModal.addEventListener('click', e => { if (e.target === syncModal) closeSyncModal(); });
-
-    btnCopySql.addEventListener('click', function () {
-      navigator.clipboard.writeText(sqlScriptEl.textContent).then(() => {
-        btnCopySql.textContent = 'Tersalin!';
-        setTimeout(() => { btnCopySql.textContent = 'Salin SQL'; }, 2000);
-      });
-    });
-
-    btnSaveSync.addEventListener('click', async function () {
-      const url = supabaseUrlInput.value.trim();
-      const key = supabaseKeyInput.value.trim();
-
-      if (!url || !key) {
-        alert('Mohon masukkan Supabase URL dan Anon Key!');
-        return;
-      }
-
-      localStorage.setItem(STORAGE_KEY_SUPABASE_URL, url);
-      localStorage.setItem(STORAGE_KEY_SUPABASE_KEY, key);
-
-      closeSyncModal();
-      initSupabase();
-
-      // Unggah data lokal yang sudah ada ke Supabase jika di cloud masih kosong
-      if (transactions.length > 0 && supabaseClient) {
-        try {
-          const { data: existing } = await supabaseClient.from('pengeluaranku_transactions').select('id');
-          if (!existing || existing.length === 0) {
-            // Push batch lokal
-            await supabaseClient.from('pengeluaranku_transactions').upsert(
-              transactions.map(t => ({
-                id: t.id,
-                date: t.date,
-                category: t.category,
-                name: t.name,
-                amount: t.amount
-              }))
-            );
-            await supabaseClient.from('pengeluaranku_settings').upsert({ key: 'monthly_budget', value: monthlyBudget.toString() });
-            showToast('Data lokal berhasil diunggah ke cloud!');
-          }
-        } catch (e) {
-          console.warn('Sync initial batch notice:', e);
-        }
-      }
-    });
-
-    btnDisconnectSupabase.addEventListener('click', function () {
-      if (confirm('Apakah Anda ingin memutuskan koneksi Supabase dari device ini? (Data di cloud tidak akan terhapus)')) {
-        localStorage.removeItem(STORAGE_KEY_SUPABASE_URL);
-        localStorage.removeItem(STORAGE_KEY_SUPABASE_KEY);
-        supabaseClient = null;
-        updateSyncIndicator('disconnected');
-        closeSyncModal();
-        showToast('Koneksi Cloud diputus. Beralih ke mode lokal.');
-      }
-    });
-
-    btnManualSync.addEventListener('click', function () {
-      if (isConnectedToCloud) {
-        fetchFromCloud();
-      } else {
-        openSyncModal();
-      }
     });
 
     filterPeriodMonth.addEventListener('change', renderApp);
@@ -1205,17 +1013,11 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       txDateInput.value = `${yyyy}-${mm}-${dd}`;
       filterPeriodMonth.value = `${yyyy}-${mm}`;
 
-      setupCurrencyInput(txAmountInput);
-      setupCurrencyInput(inputMonthlyBudget);
-
-      loadLocalState();
-      renderApp();
-
-      // Cek koneksi cloud Supabase
-      initSupabase();
+      initFirebase();
+      if (window.lucide) window.lucide.createIcons();
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    init();
   </script>
 </body>
 
