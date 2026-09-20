@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,25 +32,30 @@
       width: 6px;
       height: 6px;
     }
+
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
     }
+
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 9999px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
   </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen font-sans flex flex-col justify-between">
 
   <!-- Header & Navigasi -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
+        <div
+          class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
           <i data-lucide="wallet" class="w-5 h-5"></i>
         </div>
         <div>
@@ -57,24 +63,30 @@
           <p class="text-xs text-slate-500">Pelacak Pengeluaran Pribadi Multi-Device</p>
         </div>
       </div>
-      
+
       <div class="flex items-center gap-2">
         <!-- Status Indikator Sinkronisasi Cloud -->
-        <button id="btn-open-sync-modal" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" title="Klik untuk mengatur sinkronisasi Supabase">
+        <button id="btn-open-sync-modal"
+          class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+          title="Klik untuk mengatur sinkronisasi Supabase">
           <span class="relative flex h-2.5 w-2.5">
-            <span id="sync-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 hidden"></span>
+            <span id="sync-ping"
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 hidden"></span>
             <span id="sync-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400"></span>
           </span>
           <span id="sync-status-text">Cloud Sync</span>
         </button>
 
         <!-- Tombol Sync Manual Cepat -->
-        <button id="btn-manual-sync" class="p-2 text-slate-600 hover:text-emerald-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors shadow-sm" title="Refresh / Ambil data terbaru dari cloud">
+        <button id="btn-manual-sync"
+          class="p-2 text-slate-600 hover:text-emerald-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors shadow-sm"
+          title="Refresh / Ambil data terbaru dari cloud">
           <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
         </button>
 
         <!-- Export CSV -->
-        <button id="btn-export-csv" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+        <button id="btn-export-csv"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
           <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
           <span class="hidden sm:inline">Export</span>
         </button>
@@ -86,34 +98,36 @@
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full flex-grow space-y-6">
 
     <!-- Banner Peringatan jika Cloud Sync Belum Diaktifkan -->
-    <div id="banner-cloud-alert" class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-sm">
+    <div id="banner-cloud-alert"
+      class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-sm">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
           <i data-lucide="cloud-off" class="w-4 h-4"></i>
         </div>
         <div>
-          <span class="font-bold">Mode Penyimpanan Lokal:</span> Data baru tersimpan di browser ini. Hubungkan akun Supabase agar bisa otomatis sinkron di semua HP & Laptop Anda!
+          <span class="font-bold">Mode Penyimpanan Lokal:</span> Data baru tersimpan di browser ini. Hubungkan akun
+          Supabase agar bisa otomatis sinkron di semua HP & Laptop Anda!
         </div>
       </div>
-      <button id="btn-connect-now" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
+      <button id="btn-connect-now"
+        class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
         Hubungkan Supabase
       </button>
     </div>
 
     <!-- Bar Pemilih Bulan & Target Budget -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
       <div class="flex items-center gap-2">
         <i data-lucide="calendar" class="w-5 h-5 text-emerald-600"></i>
         <span class="text-sm font-semibold text-slate-700">Periode Bulan:</span>
-        <input 
-          type="month" 
-          id="filter-period-month" 
-          class="border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 cursor-pointer"
-        />
+        <input type="month" id="filter-period-month"
+          class="border border-slate-300 text-slate-700 text-sm font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 cursor-pointer" />
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="btn-edit-budget" class="text-xs sm:text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5">
+        <button id="btn-edit-budget"
+          class="text-xs sm:text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5">
           <i data-lucide="settings" class="w-4 h-4"></i>
           <span>Atur Target Budget</span>
         </button>
@@ -123,7 +137,8 @@
     <!-- Dashboard Ringkasan (Cards) -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
       <!-- Total Pengeluaran -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div
+        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pengeluaran Bulan Ini</span>
           <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -135,7 +150,8 @@
       </div>
 
       <!-- Target Budget -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div
+        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Target Budget</span>
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -147,10 +163,12 @@
       </div>
 
       <!-- Sisa Budget -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+      <div
+        class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sisa Budget</span>
-          <div id="remaining-icon-container" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div id="remaining-icon-container"
+            class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <i data-lucide="wallet-cards" class="w-4 h-4"></i>
           </div>
         </div>
@@ -169,11 +187,8 @@
         <span id="budget-percentage" class="font-bold text-slate-900">0%</span>
       </div>
       <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-        <div 
-          id="budget-progress-bar" 
-          class="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-          style="width: 0%"
-        ></div>
+        <div id="budget-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500"
+          style="width: 0%"></div>
       </div>
       <div class="flex justify-between text-xs text-slate-400 pt-0.5">
         <span>0%</span>
@@ -198,22 +213,15 @@
           <!-- Tanggal -->
           <div>
             <label for="tx-date" class="block text-xs font-semibold text-slate-700 mb-1">Tanggal</label>
-            <input 
-              type="date" 
-              id="tx-date" 
-              required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50"
-            />
+            <input type="date" id="tx-date" required
+              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50" />
           </div>
 
           <!-- Kategori -->
           <div>
             <label for="tx-category" class="block text-xs font-semibold text-slate-700 mb-1">Kategori</label>
-            <select 
-              id="tx-category" 
-              required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50 cursor-pointer"
-            >
+            <select id="tx-category" required
+              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50 cursor-pointer">
               <option value="Makan">🍽️ Makan & Minum</option>
               <option value="Transport">🚗 Transportasi</option>
               <option value="Kebutuhan Pokok">🛒 Kebutuhan Pokok</option>
@@ -226,37 +234,24 @@
           <!-- Nama Pengeluaran -->
           <div>
             <label for="tx-name" class="block text-xs font-semibold text-slate-700 mb-1">Nama Pengeluaran</label>
-            <input 
-              type="text" 
-              id="tx-name" 
-              placeholder="Contoh: Makan Siang Nasi Padang" 
-              required
-              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50"
-            />
+            <input type="text" id="tx-name" placeholder="Contoh: Makan Siang Nasi Padang" required
+              class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
           </div>
 
           <!-- Nominal Pengeluaran (Auto IDR) -->
           <div>
             <label for="tx-amount" class="block text-xs font-semibold text-slate-700 mb-1">Nominal (Rupiah)</label>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
-              <input 
-                type="text" 
-                id="tx-amount" 
-                inputmode="numeric" 
-                placeholder="0" 
-                required
-                class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50"
-              />
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
+              <input type="text" id="tx-amount" inputmode="numeric" placeholder="0" required
+                class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400 bg-slate-50/50" />
             </div>
           </div>
 
           <!-- Tombol Simpan -->
-          <button 
-            type="submit" 
-            id="btn-submit-tx"
-            class="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-[0.99]"
-          >
+          <button type="submit" id="btn-submit-tx"
+            class="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-[0.99]">
             <i data-lucide="check" class="w-4 h-4"></i>
             <span>Simpan Transaksi</span>
           </button>
@@ -276,10 +271,8 @@
 
           <!-- Filter Kategori & Search -->
           <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            <select 
-              id="filter-category" 
-              class="border border-slate-300 text-slate-700 text-xs font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 cursor-pointer"
-            >
+            <select id="filter-category"
+              class="border border-slate-300 text-slate-700 text-xs font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 cursor-pointer">
               <option value="Semua">Semua Kategori</option>
               <option value="Makan">🍽️ Makan</option>
               <option value="Transport">🚗 Transport</option>
@@ -289,12 +282,8 @@
               <option value="Lainnya">📦 Lainnya</option>
             </select>
 
-            <input 
-              type="text" 
-              id="filter-search" 
-              placeholder="Cari transaksi..." 
-              class="border border-slate-300 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 placeholder-slate-400 w-32 sm:w-36"
-            />
+            <input type="text" id="filter-search" placeholder="Cari transaksi..."
+              class="border border-slate-300 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 placeholder-slate-400 w-32 sm:w-36" />
           </div>
         </div>
 
@@ -309,13 +298,15 @@
             <i data-lucide="receipt" class="w-7 h-7"></i>
           </div>
           <p class="text-sm font-semibold text-slate-700">Belum ada transaksi</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-xs">Tambahkan pengeluaran baru menggunakan formulir di sebelah kiri.</p>
+          <p class="text-xs text-slate-400 mt-1 max-w-xs">Tambahkan pengeluaran baru menggunakan formulir di sebelah
+            kiri.</p>
         </div>
 
         <!-- Footer Card Riwayat -->
         <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <span id="filtered-summary-text">Menampilkan 0 transaksi</span>
-          <button id="btn-clear-all" class="text-rose-600 hover:text-rose-700 hover:underline font-medium inline-flex items-center gap-1 transition-colors">
+          <button id="btn-clear-all"
+            class="text-rose-600 hover:text-rose-700 hover:underline font-medium inline-flex items-center gap-1 transition-colors">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             <span>Hapus Semua Data</span>
           </button>
@@ -332,8 +323,11 @@
   </footer>
 
   <!-- ================= MODAL ATUR TARGET BUDGET ================= -->
-  <div id="budget-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4 transform transition-all scale-95 opacity-0 duration-200" id="budget-modal-content">
+  <div id="budget-modal"
+    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div
+      class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4 transform transition-all scale-95 opacity-0 duration-200"
+      id="budget-modal-content">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
           <i data-lucide="target" class="w-5 h-5 text-emerald-600"></i>
@@ -344,24 +338,23 @@
         </button>
       </div>
       <div>
-        <label for="input-monthly-budget" class="block text-xs font-semibold text-slate-700 mb-1">Target Pengeluaran Maksimal (Rp)</label>
+        <label for="input-monthly-budget" class="block text-xs font-semibold text-slate-700 mb-1">Target Pengeluaran
+          Maksimal (Rp)</label>
         <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
-          <input 
-            type="text" 
-            id="input-monthly-budget" 
-            inputmode="numeric" 
-            placeholder="Contoh: 3.000.000" 
-            class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          />
+          <span
+            class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 font-semibold text-sm">Rp</span>
+          <input type="text" id="input-monthly-budget" inputmode="numeric" placeholder="Contoh: 3.000.000"
+            class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
         </div>
         <p class="text-[11px] text-slate-400 mt-1">Budget ini akan disimpan dan disinkronkan ke seluruh device Anda.</p>
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button id="btn-cancel-budget" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+        <button id="btn-cancel-budget"
+          class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
           Batal
         </button>
-        <button id="btn-save-budget" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm">
+        <button id="btn-save-budget"
+          class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm">
           Simpan Budget
         </button>
       </div>
@@ -369,8 +362,11 @@
   </div>
 
   <!-- ================= MODAL PENGATURAN SUPABASE CLOUD SYNC ================= -->
-  <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto transform transition-all scale-95 opacity-0 duration-200" id="sync-modal-content">
+  <div id="sync-modal"
+    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div
+      class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto transform transition-all scale-95 opacity-0 duration-200"
+      id="sync-modal-content">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -390,22 +386,15 @@
       <div class="space-y-3 text-xs">
         <div>
           <label for="supabase-url" class="block font-semibold text-slate-700 mb-1">Supabase Project URL</label>
-          <input 
-            type="text" 
-            id="supabase-url" 
-            placeholder="https://xyzcompany.supabase.co" 
-            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50"
-          />
+          <input type="text" id="supabase-url" placeholder="https://xyzcompany.supabase.co"
+            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50" />
         </div>
 
         <div>
-          <label for="supabase-anon-key" class="block font-semibold text-slate-700 mb-1">Supabase Anon Key (Public API Key)</label>
-          <input 
-            type="password" 
-            id="supabase-anon-key" 
-            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
-            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50"
-          />
+          <label for="supabase-anon-key" class="block font-semibold text-slate-700 mb-1">Supabase Anon Key (Public API
+            Key)</label>
+          <input type="password" id="supabase-anon-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50" />
         </div>
       </div>
 
@@ -416,14 +405,17 @@
           Panduan 1 Menit:
         </div>
         <ol class="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
-          <li>Buka <a href="https://supabase.com" target="_blank" class="text-emerald-600 underline font-medium">supabase.com</a>, buat akun & project baru (gratis).</li>
+          <li>Buka <a href="https://supabase.com" target="_blank"
+              class="text-emerald-600 underline font-medium">supabase.com</a>, buat akun & project baru (gratis).</li>
           <li>Masuk ke menu <b>SQL Editor</b> di Supabase, lalu jalankan script tabel di bawah.</li>
-          <li>Salin <b>Project URL</b> dan <b>Anon Key</b> dari menu <i>Project Settings &gt; API</i>, tempel di atas.</li>
+          <li>Salin <b>Project URL</b> dan <b>Anon Key</b> dari menu <i>Project Settings &gt; API</i>, tempel di atas.
+          </li>
         </ol>
-        
+
         <!-- Script SQL Copy Box -->
         <div class="relative mt-2">
-          <pre id="sql-script" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto select-all max-h-28">-- Jalankan di SQL Editor Supabase:
+          <pre id="sql-script"
+            class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto select-all max-h-28">-- Jalankan di SQL Editor Supabase:
 CREATE TABLE IF NOT EXISTS pengeluaranku_transactions (
   id TEXT PRIMARY KEY,
   date TEXT NOT NULL,
@@ -445,7 +437,8 @@ CREATE POLICY "Public All" ON pengeluaranku_transactions FOR ALL USING (true) WI
 
 ALTER TABLE pengeluaranku_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (true) WITH CHECK (true);</pre>
-          <button id="btn-copy-sql" class="absolute top-2 right-2 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[10px] font-medium transition-colors">
+          <button id="btn-copy-sql"
+            class="absolute top-2 right-2 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[10px] font-medium transition-colors">
             Salin SQL
           </button>
         </div>
@@ -457,10 +450,12 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
           Putuskan Koneksi
         </button>
         <div class="flex items-center gap-2 ml-auto">
-          <button id="btn-cancel-sync" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          <button id="btn-cancel-sync"
+            class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
             Tutup
           </button>
-          <button id="btn-save-sync" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+          <button id="btn-save-sync"
+            class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
             <i data-lucide="check" class="w-3.5 h-3.5"></i>
             <span>Simpan & Sinkronkan</span>
           </button>
@@ -470,7 +465,8 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
   </div>
 
   <!-- Toast Notifikasi Ringan -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
+  <div id="toast"
+    class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
     <span id="toast-message">Berhasil disimpan</span>
   </div>
@@ -765,7 +761,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
               name: newTx.name,
               amount: newTx.amount
             }]);
-          
+
           if (error) throw error;
           updateSyncIndicator('connected');
           showToast('Tersimpan & tersinkron ke cloud');
@@ -969,7 +965,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     }
 
     function escapeHTML(str) {
-      return str.replace(/[&<>'"]/g, 
+      return str.replace(/[&<>'"]/g,
         tag => ({
           '&': '&amp;',
           '<': '&lt;',
@@ -982,7 +978,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
 
     // Auto format Rupiah di input
     function setupCurrencyInput(inputElement) {
-      inputElement.addEventListener('input', function() {
+      inputElement.addEventListener('input', function () {
         const rawValue = parseRupiahInput(this.value);
         this.value = rawValue === 0 ? '' : rawValue.toLocaleString('id-ID');
       });
@@ -990,7 +986,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
 
     // --- 8. EVENT HANDLERS ---
 
-    formTransaction.addEventListener('submit', function(e) {
+    formTransaction.addEventListener('submit', function (e) {
       e.preventDefault();
 
       const date = txDateInput.value;
@@ -1023,16 +1019,16 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }
     });
 
-    window.handleDeleteTransaction = function(id) {
+    window.handleDeleteTransaction = function (id) {
       const target = transactions.find(t => t.id === id);
       const confirmText = target ? `Hapus pengeluaran "${target.name}"?` : 'Hapus transaksi ini?';
-      
+
       if (confirm(confirmText)) {
         deleteTransaction(id);
       }
     };
 
-    btnClearAll.addEventListener('click', function() {
+    btnClearAll.addEventListener('click', function () {
       if (transactions.length === 0) {
         alert('Tidak ada transaksi untuk dihapus.');
         return;
@@ -1043,7 +1039,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }
     });
 
-    btnExportCsv.addEventListener('click', function() {
+    btnExportCsv.addEventListener('click', function () {
       if (transactions.length === 0) {
         alert('Belum ada data transaksi untuk diexport.');
         return;
@@ -1095,7 +1091,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     btnCancelBudget.addEventListener('click', closeBudgetModal);
     budgetModal.addEventListener('click', e => { if (e.target === budgetModal) closeBudgetModal(); });
 
-    btnSaveBudget.addEventListener('click', function() {
+    btnSaveBudget.addEventListener('click', function () {
       const newBudget = parseRupiahInput(inputMonthlyBudget.value);
       if (newBudget <= 0) {
         alert('Masukkan nominal target budget yang valid!');
@@ -1131,14 +1127,14 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     btnCancelSync.addEventListener('click', closeSyncModal);
     syncModal.addEventListener('click', e => { if (e.target === syncModal) closeSyncModal(); });
 
-    btnCopySql.addEventListener('click', function() {
+    btnCopySql.addEventListener('click', function () {
       navigator.clipboard.writeText(sqlScriptEl.textContent).then(() => {
         btnCopySql.textContent = 'Tersalin!';
         setTimeout(() => { btnCopySql.textContent = 'Salin SQL'; }, 2000);
       });
     });
 
-    btnSaveSync.addEventListener('click', async function() {
+    btnSaveSync.addEventListener('click', async function () {
       const url = supabaseUrlInput.value.trim();
       const key = supabaseKeyInput.value.trim();
 
@@ -1177,7 +1173,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }
     });
 
-    btnDisconnectSupabase.addEventListener('click', function() {
+    btnDisconnectSupabase.addEventListener('click', function () {
       if (confirm('Apakah Anda ingin memutuskan koneksi Supabase dari device ini? (Data di cloud tidak akan terhapus)')) {
         localStorage.removeItem(STORAGE_KEY_SUPABASE_URL);
         localStorage.removeItem(STORAGE_KEY_SUPABASE_KEY);
@@ -1188,7 +1184,7 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
       }
     });
 
-    btnManualSync.addEventListener('click', function() {
+    btnManualSync.addEventListener('click', function () {
       if (isConnectedToCloud) {
         fetchFromCloud();
       } else {
@@ -1222,4 +1218,5 @@ CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (tru
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
+
 </html>
