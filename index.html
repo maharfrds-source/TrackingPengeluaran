@@ -12,21 +12,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-            }
           }
         }
       }
@@ -54,20 +47,36 @@
 
   <!-- Header & Navigasi -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
           <i data-lucide="wallet" class="w-5 h-5"></i>
         </div>
         <div>
           <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">PengeluaranKu</h1>
-          <p class="text-xs text-slate-500">Pelacak Pengeluaran Bulanan Pribadi</p>
+          <p class="text-xs text-slate-500">Pelacak Pengeluaran Pribadi Multi-Device</p>
         </div>
       </div>
+      
       <div class="flex items-center gap-2">
-        <button id="btn-export-csv" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1">
+        <!-- Status Indikator Sinkronisasi Cloud -->
+        <button id="btn-open-sync-modal" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" title="Klik untuk mengatur sinkronisasi Supabase">
+          <span class="relative flex h-2.5 w-2.5">
+            <span id="sync-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 hidden"></span>
+            <span id="sync-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400"></span>
+          </span>
+          <span id="sync-status-text">Cloud Sync</span>
+        </button>
+
+        <!-- Tombol Sync Manual Cepat -->
+        <button id="btn-manual-sync" class="p-2 text-slate-600 hover:text-emerald-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors shadow-sm" title="Refresh / Ambil data terbaru dari cloud">
+          <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
+        </button>
+
+        <!-- Export CSV -->
+        <button id="btn-export-csv" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
           <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
-          <span>Export CSV</span>
+          <span class="hidden sm:inline">Export</span>
         </button>
       </div>
     </div>
@@ -75,6 +84,21 @@
 
   <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full flex-grow space-y-6">
+
+    <!-- Banner Peringatan jika Cloud Sync Belum Diaktifkan -->
+    <div id="banner-cloud-alert" class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="cloud-off" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <span class="font-bold">Mode Penyimpanan Lokal:</span> Data baru tersimpan di browser ini. Hubungkan akun Supabase agar bisa otomatis sinkron di semua HP & Laptop Anda!
+        </div>
+      </div>
+      <button id="btn-connect-now" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
+        Hubungkan Supabase
+      </button>
+    </div>
 
     <!-- Bar Pemilih Bulan & Target Budget -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
@@ -230,6 +254,7 @@
           <!-- Tombol Simpan -->
           <button 
             type="submit" 
+            id="btn-submit-tx"
             class="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 flex items-center justify-center gap-2 active:scale-[0.99]"
           >
             <i data-lucide="check" class="w-4 h-4"></i>
@@ -303,10 +328,10 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 mt-8 py-4 text-center text-xs text-slate-400">
-    <p>&copy; PengeluaranKu &bull; Data disimpan secara lokal di browser Anda.</p>
+    <p>&copy; PengeluaranKu &bull; Data tersinkronisasi otomatis via Supabase Cloud.</p>
   </footer>
 
-  <!-- Modal Atur Target Budget -->
+  <!-- ================= MODAL ATUR TARGET BUDGET ================= -->
   <div id="budget-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4 transform transition-all scale-95 opacity-0 duration-200" id="budget-modal-content">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -330,7 +355,7 @@
             class="w-full pl-10 pr-3.5 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
         </div>
-        <p class="text-[11px] text-slate-400 mt-1">Budget ini akan digunakan sebagai patokan persentase di bulan yang dipilih.</p>
+        <p class="text-[11px] text-slate-400 mt-1">Budget ini akan disimpan dan disinkronkan ke seluruh device Anda.</p>
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button id="btn-cancel-budget" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
@@ -343,20 +368,121 @@
     </div>
   </div>
 
+  <!-- ================= MODAL PENGATURAN SUPABASE CLOUD SYNC ================= -->
+  <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto transform transition-all scale-95 opacity-0 duration-200" id="sync-modal-content">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i data-lucide="cloud" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800 leading-tight">Pengaturan Supabase Cloud Sync</h3>
+            <p class="text-xs text-slate-400">Hubungkan database gratis Anda agar sinkron di HP & Laptop</p>
+          </div>
+        </div>
+        <button id="btn-close-sync-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Form Input Credential -->
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="supabase-url" class="block font-semibold text-slate-700 mb-1">Supabase Project URL</label>
+          <input 
+            type="text" 
+            id="supabase-url" 
+            placeholder="https://xyzcompany.supabase.co" 
+            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50"
+          />
+        </div>
+
+        <div>
+          <label for="supabase-anon-key" class="block font-semibold text-slate-700 mb-1">Supabase Anon Key (Public API Key)</label>
+          <input 
+            type="password" 
+            id="supabase-anon-key" 
+            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-700 bg-slate-50/50"
+          />
+        </div>
+      </div>
+
+      <!-- Panduan Cepat Supabase SQL Setup -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2 text-slate-600">
+        <div class="font-semibold text-slate-800 flex items-center gap-1.5">
+          <i data-lucide="terminal" class="w-3.5 h-3.5 text-emerald-600"></i>
+          Panduan 1 Menit:
+        </div>
+        <ol class="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
+          <li>Buka <a href="https://supabase.com" target="_blank" class="text-emerald-600 underline font-medium">supabase.com</a>, buat akun & project baru (gratis).</li>
+          <li>Masuk ke menu <b>SQL Editor</b> di Supabase, lalu jalankan script tabel di bawah.</li>
+          <li>Salin <b>Project URL</b> dan <b>Anon Key</b> dari menu <i>Project Settings &gt; API</i>, tempel di atas.</li>
+        </ol>
+        
+        <!-- Script SQL Copy Box -->
+        <div class="relative mt-2">
+          <pre id="sql-script" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg text-[10px] font-mono overflow-x-auto select-all max-h-28">-- Jalankan di SQL Editor Supabase:
+CREATE TABLE IF NOT EXISTS pengeluaranku_transactions (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  category TEXT NOT NULL,
+  name TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pengeluaranku_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Buka izin akses anonim (untuk website pribadi)
+ALTER TABLE pengeluaranku_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public All" ON pengeluaranku_transactions FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE pengeluaranku_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public All Settings" ON pengeluaranku_settings FOR ALL USING (true) WITH CHECK (true);</pre>
+          <button id="btn-copy-sql" class="absolute top-2 right-2 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-[10px] font-medium transition-colors">
+            Salin SQL
+          </button>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi Modal -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+        <button id="btn-disconnect-supabase" class="text-xs text-rose-600 hover:text-rose-700 hover:underline hidden">
+          Putuskan Koneksi
+        </button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button id="btn-cancel-sync" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            Tutup
+          </button>
+          <button id="btn-save-sync" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Simpan & Sinkronkan</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notifikasi Ringan -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium translate-y-20 opacity-0 transition-all duration-300">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
     <span id="toast-message">Berhasil disimpan</span>
   </div>
 
-  <!-- ================= LOGIKA JAVASCRIPT ================= -->
+  <!-- ================= LOGIKA JAVASCRIPT LENGKAP ================= -->
   <script>
     /**
-     * PENGELUARANKU - EXPENSE TRACKER
-     * Logika murni Vanilla JavaScript dengan LocalStorage
+     * PENGELUARANKU - MULTI-DEVICE EXPENSE TRACKER
+     * Didukung sinkronisasi Supabase Realtime + LocalStorage Fallback
      */
 
-    // --- 1. KONFIGURASI KATEGORI (WARNA & IKON) ---
+    // --- 1. KONFIGURASI KATEGORI ---
     const CATEGORY_META = {
       'Makan': { icon: 'utensils', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
       'Transport': { icon: 'car', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
@@ -366,12 +492,16 @@
       'Lainnya': { icon: 'package', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' }
     };
 
-    // --- 2. STATE APLIKASI ---
-    const STORAGE_KEY_TRANSACTIONS = 'pengeluaranku_transactions_v1';
-    const STORAGE_KEY_BUDGET = 'pengeluaranku_monthly_budget_v1';
+    // --- 2. STATE STORAGE & CREDENTIALS ---
+    const STORAGE_KEY_TRANSACTIONS = 'pengeluaranku_transactions_v2';
+    const STORAGE_KEY_BUDGET = 'pengeluaranku_monthly_budget_v2';
+    const STORAGE_KEY_SUPABASE_URL = 'pengeluaranku_supabase_url';
+    const STORAGE_KEY_SUPABASE_KEY = 'pengeluaranku_supabase_key';
 
     let transactions = [];
-    let monthlyBudget = 3000000; // Default budget Rp 3.000.000 jika belum diset
+    let monthlyBudget = 3000000;
+    let supabaseClient = null;
+    let isConnectedToCloud = false;
 
     // --- 3. ELEMEN DOM ---
     const filterPeriodMonth = document.getElementById('filter-period-month');
@@ -400,7 +530,28 @@
     const btnClearAll = document.getElementById('btn-clear-all');
     const btnExportCsv = document.getElementById('btn-export-csv');
 
-    // Modal Budget Elemen
+    // Cloud Sync DOM Elements
+    const btnOpenSyncModal = document.getElementById('btn-open-sync-modal');
+    const btnManualSync = document.getElementById('btn-manual-sync');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const syncDot = document.getElementById('sync-dot');
+    const syncPing = document.getElementById('sync-ping');
+    const syncStatusText = document.getElementById('sync-status-text');
+    const bannerCloudAlert = document.getElementById('banner-cloud-alert');
+    const btnConnectNow = document.getElementById('btn-connect-now');
+
+    const syncModal = document.getElementById('sync-modal');
+    const syncModalContent = document.getElementById('sync-modal-content');
+    const btnCloseSyncModal = document.getElementById('btn-close-sync-modal');
+    const btnCancelSync = document.getElementById('btn-cancel-sync');
+    const btnSaveSync = document.getElementById('btn-save-sync');
+    const btnDisconnectSupabase = document.getElementById('btn-disconnect-supabase');
+    const supabaseUrlInput = document.getElementById('supabase-url');
+    const supabaseKeyInput = document.getElementById('supabase-anon-key');
+    const btnCopySql = document.getElementById('btn-copy-sql');
+    const sqlScriptEl = document.getElementById('sql-script');
+
+    // Modal Budget
     const budgetModal = document.getElementById('budget-modal');
     const budgetModalContent = document.getElementById('budget-modal-content');
     const btnEditBudget = document.getElementById('btn-edit-budget');
@@ -413,22 +564,18 @@
     const toastEl = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
 
-    // --- 4. FUNGSI UTILITAS (FORMAT RUPIAH, TANGGAL, TOAST) ---
-
-    // Format angka ke format mata uang Rupiah IDR (misal: Rp 150.000)
+    // --- 4. HELPER UTILITAS ---
     function formatIDR(number) {
       const num = Number(number) || 0;
       return 'Rp ' + num.toLocaleString('id-ID');
     }
 
-    // Parse input string format ribuan/Rupiah kembali menjadi integer murni
     function parseRupiahInput(value) {
       if (!value) return 0;
       const cleanString = value.toString().replace(/[^0-9]/g, '');
       return cleanString ? parseInt(cleanString, 10) : 0;
     }
 
-    // Format string tanggal YYYY-MM-DD ke format lokal yang rapi (misal: 15 Sep 2026)
     function formatDateID(dateStr) {
       if (!dateStr) return '';
       const [year, month, day] = dateStr.split('-');
@@ -436,7 +583,6 @@
       return `${parseInt(day, 10)} ${months[parseInt(month, 10) - 1]} ${year}`;
     }
 
-    // Menampilkan toast notifikasi singkat
     function showToast(msg) {
       toastMessage.textContent = msg;
       toastEl.classList.remove('translate-y-20', 'opacity-0');
@@ -447,99 +593,287 @@
       }, 2500);
     }
 
-    // --- 5. INITIALIZATION & DATA LOCALSTORAGE ---
+    function updateSyncIndicator(status) {
+      if (status === 'connected') {
+        isConnectedToCloud = true;
+        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500';
+        syncPing.classList.remove('hidden');
+        syncStatusText.textContent = 'Cloud Terhubung';
+        btnOpenSyncModal.className = 'inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+        bannerCloudAlert.classList.add('hidden');
+        btnDisconnectSupabase.classList.remove('hidden');
+      } else if (status === 'syncing') {
+        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500';
+        syncStatusText.textContent = 'Menyinkronkan...';
+        refreshIcon.classList.add('animate-spin');
+      } else {
+        isConnectedToCloud = false;
+        syncDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400';
+        syncPing.classList.add('hidden');
+        syncStatusText.textContent = 'Lokal (Belum Sync)';
+        btnOpenSyncModal.className = 'inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200';
+        bannerCloudAlert.classList.remove('hidden');
+        btnDisconnectSupabase.classList.add('hidden');
+        refreshIcon.classList.remove('animate-spin');
+      }
+    }
 
-    function loadStateFromStorage() {
+    // --- 5. INITIALIZE SUPABASE CLIENT ---
+    function initSupabase() {
+      const url = localStorage.getItem(STORAGE_KEY_SUPABASE_URL);
+      const key = localStorage.getItem(STORAGE_KEY_SUPABASE_KEY);
+
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          supabaseUrlInput.value = url;
+          supabaseKeyInput.value = key;
+          updateSyncIndicator('connected');
+          subscribeRealtime();
+          fetchFromCloud();
+          return true;
+        } catch (err) {
+          console.error('Inisialisasi Supabase gagal:', err);
+          updateSyncIndicator('disconnected');
+          return false;
+        }
+      } else {
+        updateSyncIndicator('disconnected');
+        return false;
+      }
+    }
+
+    // Ambil Data Terbaru dari Cloud Supabase
+    async function fetchFromCloud(silent = false) {
+      if (!supabaseClient) return;
+
       try {
-        const storedTx = localStorage.getItem(STORAGE_KEY_TRANSACTIONS);
+        updateSyncIndicator('syncing');
+
+        // 1. Fetch Transaksi
+        const { data: txData, error: txError } = await supabaseClient
+          .from('pengeluaranku_transactions')
+          .select('*')
+          .order('date', { ascending: false });
+
+        if (txError) throw txError;
+
+        // 2. Fetch Pengaturan Budget
+        const { data: settingsData, error: settingsError } = await supabaseClient
+          .from('pengeluaranku_settings')
+          .select('*')
+          .eq('key', 'monthly_budget')
+          .maybeSingle();
+
+        if (settingsError) throw settingsError;
+
+        if (settingsData && settingsData.value) {
+          monthlyBudget = parseInt(settingsData.value, 10) || monthlyBudget;
+          localStorage.setItem(STORAGE_KEY_BUDGET, monthlyBudget.toString());
+        }
+
+        // Simpan ke local
+        if (txData) {
+          transactions = txData.map(item => ({
+            id: item.id,
+            date: item.date,
+            name: item.name,
+            category: item.category,
+            amount: Number(item.amount)
+          }));
+          localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
+        }
+
+        updateSyncIndicator('connected');
+        refreshIcon.classList.remove('animate-spin');
+        renderApp();
+        if (!silent) showToast('Data tersinkronkan dengan Cloud');
+      } catch (err) {
+        console.error('Gagal mengambil data dari Supabase:', err);
+        updateSyncIndicator('connected');
+        refreshIcon.classList.remove('animate-spin');
+        if (!silent) showToast('Gagal sinkron cloud (cek koneksi/tabel)');
+      }
+    }
+
+    // Subscribe ke Realtime Changes (Jika HP mengedit, Laptop otomatis update tanpa refresh)
+    function subscribeRealtime() {
+      if (!supabaseClient) return;
+
+      try {
+        supabaseClient
+          .channel('public:pengeluaranku_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pengeluaranku_transactions' }, payload => {
+            console.log('Realtime transaksi terdeteksi:', payload);
+            fetchFromCloud(true);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pengeluaranku_settings' }, payload => {
+            console.log('Realtime budget terdeteksi:', payload);
+            fetchFromCloud(true);
+          })
+          .subscribe();
+      } catch (err) {
+        console.warn('Realtime subscription tidak tersedia:', err);
+      }
+    }
+
+    // --- 6. OPERASI DATA (LOCAL + CLOUD) ---
+
+    function loadLocalState() {
+      try {
+        const storedTx = localStorage.getItem(STORAGE_KEY_TRANSACTIONS) || localStorage.getItem('pengeluaranku_transactions_v1');
         if (storedTx) {
           transactions = JSON.parse(storedTx);
         } else {
-          // Data sampel awal agar dashboard tidak langsung kosong dan user langsung mengerti
+          // Data sampel awal
           const today = new Date();
           const yyyy = today.getFullYear();
           const mm = String(today.getMonth() + 1).padStart(2, '0');
           transactions = [
-            {
-              id: 'tx_sample_1',
-              date: `${yyyy}-${mm}-02`,
-              name: 'Belanja Mingguan Supermarket',
-              category: 'Kebutuhan Pokok',
-              amount: 350000
-            },
-            {
-              id: 'tx_sample_2',
-              date: `${yyyy}-${mm}-05`,
-              name: 'Makan Malam Bersama Teman',
-              category: 'Makan',
-              amount: 125000
-            },
-            {
-              id: 'tx_sample_3',
-              date: `${yyyy}-${mm}-10`,
-              name: 'Bensin Kendaraan',
-              category: 'Transport',
-              amount: 50000
-            },
-            {
-              id: 'tx_sample_4',
-              date: `${yyyy}-${mm}-12`,
-              name: 'Langganan Internet & Listrik',
-              category: 'Tagihan',
-              amount: 450000
-            }
+            { id: 'tx_sample_1', date: `${yyyy}-${mm}-02`, name: 'Belanja Mingguan Supermarket', category: 'Kebutuhan Pokok', amount: 350000 },
+            { id: 'tx_sample_2', date: `${yyyy}-${mm}-05`, name: 'Makan Malam Bersama Teman', category: 'Makan', amount: 125000 },
+            { id: 'tx_sample_3', date: `${yyyy}-${mm}-10`, name: 'Bensin Kendaraan', category: 'Transport', amount: 50000 },
+            { id: 'tx_sample_4', date: `${yyyy}-${mm}-12`, name: 'Langganan Internet & Listrik', category: 'Tagihan', amount: 450000 }
           ];
-          saveTransactionsToStorage();
         }
 
-        const storedBudget = localStorage.getItem(STORAGE_KEY_BUDGET);
+        const storedBudget = localStorage.getItem(STORAGE_KEY_BUDGET) || localStorage.getItem('pengeluaranku_monthly_budget_v1');
         if (storedBudget) {
           monthlyBudget = parseInt(storedBudget, 10) || 3000000;
         }
       } catch (err) {
-        console.error('Gagal membaca data dari LocalStorage:', err);
-        transactions = [];
+        console.error('Gagal membaca local storage:', err);
       }
     }
 
-    function saveTransactionsToStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
-      } catch (err) {
-        console.error('Gagal menyimpan transaksi ke LocalStorage:', err);
+    async function addTransaction(newTx) {
+      // 1. Simpan di memori & local storage
+      transactions.unshift(newTx);
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
+      renderApp();
+
+      // 2. Jika terhubung cloud, simpan ke Supabase
+      if (supabaseClient) {
+        updateSyncIndicator('syncing');
+        try {
+          const { error } = await supabaseClient
+            .from('pengeluaranku_transactions')
+            .insert([{
+              id: newTx.id,
+              date: newTx.date,
+              category: newTx.category,
+              name: newTx.name,
+              amount: newTx.amount
+            }]);
+          
+          if (error) throw error;
+          updateSyncIndicator('connected');
+          showToast('Tersimpan & tersinkron ke cloud');
+        } catch (err) {
+          console.error('Gagal simpan ke cloud:', err);
+          updateSyncIndicator('connected');
+          showToast('Tersimpan lokal (cloud gagal tersambung)');
+        }
+      } else {
+        showToast('Pengeluaran berhasil disimpan (lokal)');
       }
     }
 
-    function saveBudgetToStorage(newBudget) {
-      try {
-        monthlyBudget = newBudget;
-        localStorage.setItem(STORAGE_KEY_BUDGET, newBudget.toString());
-      } catch (err) {
-        console.error('Gagal menyimpan budget ke LocalStorage:', err);
+    async function deleteTransaction(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(transactions));
+      renderApp();
+
+      if (supabaseClient) {
+        updateSyncIndicator('syncing');
+        try {
+          const { error } = await supabaseClient
+            .from('pengeluaranku_transactions')
+            .delete()
+            .eq('id', id);
+
+          if (error) throw error;
+          updateSyncIndicator('connected');
+          showToast('Transaksi dihapus dari cloud & device');
+        } catch (err) {
+          console.error('Gagal hapus di cloud:', err);
+          updateSyncIndicator('connected');
+          showToast('Dihapus dari device (cloud gagal)');
+        }
+      } else {
+        showToast('Transaksi berhasil dihapus');
       }
     }
 
-    // --- 6. LOGIKA RENDER DASHBOARD & TRANSAKSI ---
+    async function clearAllTransactions() {
+      transactions = [];
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify([]));
+      renderApp();
+
+      if (supabaseClient) {
+        updateSyncIndicator('syncing');
+        try {
+          const { error } = await supabaseClient
+            .from('pengeluaranku_transactions')
+            .delete()
+            .neq('id', 'placeholder_keep_empty');
+
+          if (error) throw error;
+          updateSyncIndicator('connected');
+          showToast('Semua data dibersihkan dari cloud');
+        } catch (err) {
+          console.error('Gagal membersihkan cloud:', err);
+          updateSyncIndicator('connected');
+        }
+      } else {
+        showToast('Semua riwayat pengeluaran lokal telah dihapus');
+      }
+    }
+
+    async function updateBudget(newBudget) {
+      monthlyBudget = newBudget;
+      localStorage.setItem(STORAGE_KEY_BUDGET, newBudget.toString());
+      renderApp();
+
+      if (supabaseClient) {
+        updateSyncIndicator('syncing');
+        try {
+          const { error } = await supabaseClient
+            .from('pengeluaranku_settings')
+            .upsert({ key: 'monthly_budget', value: newBudget.toString() });
+
+          if (error) throw error;
+          updateSyncIndicator('connected');
+          showToast('Target budget tersinkron ke semua device');
+        } catch (err) {
+          console.error('Gagal update budget di cloud:', err);
+          updateSyncIndicator('connected');
+          showToast('Budget diperbarui lokal');
+        }
+      } else {
+        showToast('Target budget bulanan diperbarui');
+      }
+    }
+
+    // --- 7. RENDER DASHBOARD & TRANSAKSI ---
 
     function renderApp() {
-      const selectedMonth = filterPeriodMonth.value; // Format: YYYY-MM
+      const selectedMonth = filterPeriodMonth.value; // YYYY-MM
       const selectedCategory = filterCategory.value;
       const searchQuery = filterSearch.value.trim().toLowerCase();
 
-      // Filter data untuk Dashboard (berdasarkan periode bulan yang dipilih)
+      // Hitung Pengeluaran Bulan Ini
       const currentMonthTx = transactions.filter(tx => tx.date.startsWith(selectedMonth));
-
-      // Hitung Total Pengeluaran Bulan Ini
       const totalExpense = currentMonthTx.reduce((sum, tx) => sum + tx.amount, 0);
       const remainingBudget = monthlyBudget - totalExpense;
       const usagePercentage = monthlyBudget > 0 ? Math.round((totalExpense / monthlyBudget) * 100) : 0;
 
-      // Update Kartu Dashboard
+      // Update Card
       cardTotalExpense.textContent = formatIDR(totalExpense);
       cardTxCount.textContent = `${currentMonthTx.length} transaksi di bulan ini`;
       cardTargetBudget.textContent = formatIDR(monthlyBudget);
 
-      // Indikator Sisa Budget & Status
+      // Sisa Budget
       if (remainingBudget >= 0) {
         cardRemainingBudget.textContent = formatIDR(remainingBudget);
         cardRemainingBudget.className = 'text-2xl sm:text-3xl font-bold text-slate-900';
@@ -554,12 +888,11 @@
         remainingIconContainer.className = 'w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center';
       }
 
-      // Update Progress Bar
+      // Progress Bar
       budgetPercentage.textContent = `${usagePercentage}%`;
       const clampedWidth = Math.min(usagePercentage, 100);
       budgetProgressBar.style.width = `${clampedWidth}%`;
 
-      // Warna progress bar dinamis sesuai persentase pemakaian
       if (usagePercentage < 70) {
         budgetProgressBar.className = 'h-full bg-emerald-500 rounded-full transition-all duration-500';
         budgetPercentage.className = 'font-bold text-emerald-600';
@@ -571,7 +904,7 @@
         budgetPercentage.className = 'font-bold text-rose-600';
       }
 
-      // Filter riwayat yang akan ditampilkan di list
+      // Filter Riwayat List
       const filteredTx = transactions.filter(tx => {
         const matchesMonth = selectedMonth ? tx.date.startsWith(selectedMonth) : true;
         const matchesCategory = selectedCategory === 'Semua' || tx.category === selectedCategory;
@@ -579,13 +912,10 @@
         return matchesMonth && matchesCategory && matchesSearch;
       });
 
-      // Urutkan transaksi dari tanggal terbaru ke terlama
       filteredTx.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // Render List Transaksi
       renderTransactionList(filteredTx);
 
-      // Re-inisialisasi ikon Lucide
       if (window.lucide) {
         window.lucide.createIcons();
       }
@@ -638,7 +968,6 @@
       });
     }
 
-    // Sanitasi teks sederhana untuk mencegah XSS
     function escapeHTML(str) {
       return str.replace(/[&<>'"]/g, 
         tag => ({
@@ -651,21 +980,16 @@
       );
     }
 
-    // --- 7. EVENT HANDLERS ---
-
-    // Input nominal dengan auto-format titik ribuan
+    // Auto format Rupiah di input
     function setupCurrencyInput(inputElement) {
-      inputElement.addEventListener('input', function(e) {
+      inputElement.addEventListener('input', function() {
         const rawValue = parseRupiahInput(this.value);
-        if (rawValue === 0) {
-          this.value = '';
-        } else {
-          this.value = rawValue.toLocaleString('id-ID');
-        }
+        this.value = rawValue === 0 ? '' : rawValue.toLocaleString('id-ID');
       });
     }
 
-    // Tambah Transaksi Baru
+    // --- 8. EVENT HANDLERS ---
+
     formTransaction.addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -687,62 +1011,45 @@
         amount
       };
 
-      transactions.unshift(newTx);
-      saveTransactionsToStorage();
+      addTransaction(newTx);
 
-      // Reset form input
       txNameInput.value = '';
       txAmountInput.value = '';
-      
-      // Sinkronkan filter bulan dengan tanggal transaksi yang baru ditambahkan
+
       const txMonth = date.substring(0, 7);
       if (filterPeriodMonth.value !== txMonth) {
         filterPeriodMonth.value = txMonth;
+        renderApp();
       }
-
-      renderApp();
-      showToast('Pengeluaran berhasil ditambahkan');
     });
 
-    // Hapus Transaksi Individual
     window.handleDeleteTransaction = function(id) {
       const target = transactions.find(t => t.id === id);
       const confirmText = target ? `Hapus pengeluaran "${target.name}"?` : 'Hapus transaksi ini?';
       
       if (confirm(confirmText)) {
-        transactions = transactions.filter(t => t.id !== id);
-        saveTransactionsToStorage();
-        renderApp();
-        showToast('Transaksi berhasil dihapus');
+        deleteTransaction(id);
       }
     };
 
-    // Hapus Semua Data
     btnClearAll.addEventListener('click', function() {
       if (transactions.length === 0) {
         alert('Tidak ada transaksi untuk dihapus.');
         return;
       }
 
-      if (confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh riwayat transaksi? Tindakan ini tidak dapat dibatalkan.')) {
-        transactions = [];
-        saveTransactionsToStorage();
-        renderApp();
-        showToast('Semua riwayat pengeluaran telah dibersihkan');
+      if (confirm('PERINGATAN: Apakah Anda yakin ingin menghapus seluruh data transaksi? Tindakan ini akan menghapus riwayat di lokal maupun cloud.')) {
+        clearAllTransactions();
       }
     });
 
-    // Export Riwayat Transaksi ke CSV
     btnExportCsv.addEventListener('click', function() {
       if (transactions.length === 0) {
-        alert('Belum ada data transaksi yang dapat diexport.');
+        alert('Belum ada data transaksi untuk diexport.');
         return;
       }
 
-      // Buat baris header CSV
       const headers = ['ID', 'Tanggal', 'Kategori', 'Nama Pengeluaran', 'Nominal (IDR)'];
-      
-      // Buat baris data
       const rows = transactions.map(tx => [
         `"${tx.id}"`,
         `"${tx.date}"`,
@@ -751,26 +1058,20 @@
         tx.amount
       ]);
 
-      // Gabungkan dengan penambahan UTF-8 BOM (\uFEFF) agar Microsoft Excel membuka karakter dengan benar
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-      
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const filename = `PengeluaranKu_Export_${new Date().toISOString().slice(0, 10)}.csv`;
-      
       link.setAttribute('href', url);
-      link.setAttribute('download', filename);
+      link.setAttribute('download', `PengeluaranKu_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
       showToast('File CSV berhasil diunduh');
     });
 
-    // --- 8. MODAL PENGATURAN TARGET BUDGET ---
-
+    // Modal Budget Events
     function openBudgetModal() {
       inputMonthlyBudget.value = monthlyBudget.toLocaleString('id-ID');
       budgetModal.classList.remove('hidden');
@@ -792,30 +1093,115 @@
     btnEditBudget.addEventListener('click', openBudgetModal);
     btnCloseBudgetModal.addEventListener('click', closeBudgetModal);
     btnCancelBudget.addEventListener('click', closeBudgetModal);
-    budgetModal.addEventListener('click', (e) => {
-      if (e.target === budgetModal) closeBudgetModal();
-    });
+    budgetModal.addEventListener('click', e => { if (e.target === budgetModal) closeBudgetModal(); });
 
     btnSaveBudget.addEventListener('click', function() {
       const newBudget = parseRupiahInput(inputMonthlyBudget.value);
       if (newBudget <= 0) {
-        alert('Masukkan nominal target budget yang valid (lebih dari 0)!');
+        alert('Masukkan nominal target budget yang valid!');
         return;
       }
-      saveBudgetToStorage(newBudget);
+      updateBudget(newBudget);
       closeBudgetModal();
-      renderApp();
-      showToast('Target budget bulanan diperbarui');
     });
 
-    // Filter listeners
+    // --- 9. SUPABASE MODAL & SYNC EVENTS ---
+
+    function openSyncModal() {
+      supabaseUrlInput.value = localStorage.getItem(STORAGE_KEY_SUPABASE_URL) || '';
+      supabaseKeyInput.value = localStorage.getItem(STORAGE_KEY_SUPABASE_KEY) || '';
+      syncModal.classList.remove('hidden');
+      setTimeout(() => {
+        syncModalContent.classList.remove('scale-95', 'opacity-0');
+        syncModalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeSyncModal() {
+      syncModalContent.classList.remove('scale-100', 'opacity-100');
+      syncModalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        syncModal.classList.add('hidden');
+      }, 200);
+    }
+
+    btnOpenSyncModal.addEventListener('click', openSyncModal);
+    btnConnectNow.addEventListener('click', openSyncModal);
+    btnCloseSyncModal.addEventListener('click', closeSyncModal);
+    btnCancelSync.addEventListener('click', closeSyncModal);
+    syncModal.addEventListener('click', e => { if (e.target === syncModal) closeSyncModal(); });
+
+    btnCopySql.addEventListener('click', function() {
+      navigator.clipboard.writeText(sqlScriptEl.textContent).then(() => {
+        btnCopySql.textContent = 'Tersalin!';
+        setTimeout(() => { btnCopySql.textContent = 'Salin SQL'; }, 2000);
+      });
+    });
+
+    btnSaveSync.addEventListener('click', async function() {
+      const url = supabaseUrlInput.value.trim();
+      const key = supabaseKeyInput.value.trim();
+
+      if (!url || !key) {
+        alert('Mohon masukkan Supabase URL dan Anon Key!');
+        return;
+      }
+
+      localStorage.setItem(STORAGE_KEY_SUPABASE_URL, url);
+      localStorage.setItem(STORAGE_KEY_SUPABASE_KEY, key);
+
+      closeSyncModal();
+      initSupabase();
+
+      // Unggah data lokal yang sudah ada ke Supabase jika di cloud masih kosong
+      if (transactions.length > 0 && supabaseClient) {
+        try {
+          const { data: existing } = await supabaseClient.from('pengeluaranku_transactions').select('id');
+          if (!existing || existing.length === 0) {
+            // Push batch lokal
+            await supabaseClient.from('pengeluaranku_transactions').upsert(
+              transactions.map(t => ({
+                id: t.id,
+                date: t.date,
+                category: t.category,
+                name: t.name,
+                amount: t.amount
+              }))
+            );
+            await supabaseClient.from('pengeluaranku_settings').upsert({ key: 'monthly_budget', value: monthlyBudget.toString() });
+            showToast('Data lokal berhasil diunggah ke cloud!');
+          }
+        } catch (e) {
+          console.warn('Sync initial batch notice:', e);
+        }
+      }
+    });
+
+    btnDisconnectSupabase.addEventListener('click', function() {
+      if (confirm('Apakah Anda ingin memutuskan koneksi Supabase dari device ini? (Data di cloud tidak akan terhapus)')) {
+        localStorage.removeItem(STORAGE_KEY_SUPABASE_URL);
+        localStorage.removeItem(STORAGE_KEY_SUPABASE_KEY);
+        supabaseClient = null;
+        updateSyncIndicator('disconnected');
+        closeSyncModal();
+        showToast('Koneksi Cloud diputus. Beralih ke mode lokal.');
+      }
+    });
+
+    btnManualSync.addEventListener('click', function() {
+      if (isConnectedToCloud) {
+        fetchFromCloud();
+      } else {
+        openSyncModal();
+      }
+    });
+
     filterPeriodMonth.addEventListener('change', renderApp);
     filterCategory.addEventListener('change', renderApp);
     filterSearch.addEventListener('input', renderApp);
 
-    // --- 9. BOOTSTRAP APLIKASI ---
+    // --- 10. BOOTSTRAP ---
     function init() {
-      // Inisialisasi tanggal form hari ini
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -823,18 +1209,16 @@
       txDateInput.value = `${yyyy}-${mm}-${dd}`;
       filterPeriodMonth.value = `${yyyy}-${mm}`;
 
-      // Inisialisasi format input Rupiah
       setupCurrencyInput(txAmountInput);
       setupCurrencyInput(inputMonthlyBudget);
 
-      // Muat data dari localStorage
-      loadStateFromStorage();
-
-      // Render pertama kali
+      loadLocalState();
       renderApp();
+
+      // Cek koneksi cloud Supabase
+      initSupabase();
     }
 
-    // Jalankan inisialisasi saat DOM siap
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
