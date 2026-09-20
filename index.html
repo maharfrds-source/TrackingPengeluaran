@@ -471,7 +471,16 @@
     };
 
     // --- 2. STATE APLIKASI ---
-    const STORAGE_KEY_FIREBASE = 'pengeluaranku_firebase_config';
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyDmnWIiGtvJLpEHvLaksxKncyBB2xxdnQ4",
+      authDomain: "trackingpengeluaran.firebaseapp.com",
+      projectId: "trackingpengeluaran",
+      storageBucket: "trackingpengeluaran.firebasestorage.app",
+      messagingSenderId: "178658882225",
+      appId: "1:178658882225:web:dbb0c195bf6972a5182890",
+      measurementId: "G-4BTJ7GES58"
+    };
+
     const STORAGE_KEY_LOCAL_TX = 'pengeluaranku_transactions_local';
     const STORAGE_KEY_LOCAL_BUDGET = 'pengeluaranku_budget_local';
 
@@ -578,15 +587,8 @@
 
     // --- 5. INITIALIZE FIREBASE & AUTH ---
     function initFirebase() {
-      const configStr = localStorage.getItem(STORAGE_KEY_FIREBASE);
-      if (!configStr) {
-        loadLocalFallback();
-        return;
-      }
-
       try {
-        const config = JSON.parse(configStr);
-        const app = initializeApp(config);
+        const app = initializeApp(FIREBASE_CONFIG);
         auth = getAuth(app);
         db = getFirestore(app);
 
