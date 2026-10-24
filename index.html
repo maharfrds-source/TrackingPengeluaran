@@ -154,9 +154,9 @@
 
       <!-- Area Akun Pengguna & Aksi -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Tombol Buka Konfigurasi Firebase jika belum diset -->
+        <!-- Tombol Buka Konfigurasi Firebase jika belum diset (hidden karena config sudah tertanam) -->
         <button id="btn-open-config"
-          class="w-9 h-9 sm:w-auto sm:h-auto sm:px-2.5 sm:py-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full sm:rounded-xl text-xs font-medium transition-colors flex items-center justify-center flex-shrink-0"
+          class="hidden w-9 h-9 sm:w-auto sm:h-auto sm:px-2.5 sm:py-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full sm:rounded-xl text-xs font-medium transition-colors items-center justify-center flex-shrink-0"
           title="Pengaturan Firebase">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
@@ -753,62 +753,37 @@
 
       authStatusBar.classList.add('hidden');
       authWarningBar.classList.remove('hidden');
+
+      // Bersihkan data akun dari memori
+      transactions = [];
+      monthlyBudget = 3000000;
+      localStorage.removeItem(STORAGE_KEY_LOCAL_TX);
+      localStorage.removeItem(STORAGE_KEY_LOCAL_BUDGET);
     }
 
     // --- 6. FIRESTORE REALTIME SYNC (MULTI-DEVICE) ---
-    async function syncLocalToCloudOnLogin(uid) {
-      if (!db || !currentUser) return;
-      try {
-        // Ambil data lokal jika ada transaksi yang belum ada di cloud
-        const storedTx = localStorage.getItem(STORAGE_KEY_LOCAL_TX);
-        if (storedTx) {
-          const localList = JSON.parse(storedTx);
-          // Upload data transaksi lokal non-sampel ke akun
-          for (const tx of localList) {
-            if (tx && tx.id && !tx.id.startsWith('tx_sample_')) {
-              const docRef = doc(db, 'users', uid, 'transactions', tx.id);
-              await setDoc(docRef, {
-                date: tx.date,
-                category: tx.category,
-                name: tx.name,
-                amount: tx.amount,
-                createdAt: tx.createdAt || new Date().toISOString()
-              }, { merge: true });
-            }
-          }
-        }
-        // Upload budget lokal jika diset
-        const storedBudget = localStorage.getItem(STORAGE_KEY_LOCAL_BUDGET);
-        if (storedBudget && Number(storedBudget) > 0) {
-          const budgetDocRef = doc(db, 'users', uid, 'settings', 'budget');
-          await setDoc(budgetDocRef, { 
-            amount: Number(storedBudget), 
-            updatedAt: new Date().toISOString() 
-          }, { merge: true });
-        }
-      } catch (err) {
-        console.warn('Sync local to cloud warning:', err);
-      }
-    }
-
     function setupFirestoreRealtime(uid) {
       if (!db) return;
       cloudAvailable = true;
 
-      // Jalankan migrasi data offline/lokal ke cloud
-      syncLocalToCloudOnLogin(uid);
+      // Bersihkan data akun lama di memori saat berpindah akun
+      transactions = [];
+      monthlyBudget = 3000000;
+      renderApp();
 
-      // 1. Ambil target budget user secara realtime
+      // 1. Ambil target budget user secara realtime dari akun ini saja
       const userSettingsRef = doc(db, 'users', uid, 'settings', 'budget');
       unsubscribeBudget = onSnapshot(userSettingsRef, (docSnap) => {
         if (docSnap.exists()) {
           monthlyBudget = Number(docSnap.data().amount) || 3000000;
-          persistLocal();
-          renderApp();
+        } else {
+          monthlyBudget = 3000000;
         }
+        persistLocal();
+        renderApp();
       }, (err) => handleCloudError(err, 'membaca budget'));
 
-      // 2. Realtime listener transaksi user dari cloud
+      // 2. Realtime listener transaksi user dari cloud akun ini saja
       const txCollectionRef = collection(db, 'users', uid, 'transactions');
       unsubscribeFirestore = onSnapshot(txCollectionRef, (snapshot) => {
         const cloudTx = [];
@@ -822,7 +797,7 @@
           amount: Number(t.amount)
         }));
 
-        // Simpan ke local cache juga
+        // Simpan ke local cache
         persistLocal();
         renderApp();
       }, (err) => {
@@ -1183,8 +1158,13 @@
 
     btnLogout.addEventListener('click', async () => {
       if (confirm('Apakah Anda ingin keluar dari akun Google?')) {
+        transactions = [];
+        monthlyBudget = 3000000;
+        localStorage.removeItem(STORAGE_KEY_LOCAL_TX);
+        localStorage.removeItem(STORAGE_KEY_LOCAL_BUDGET);
         if (auth) await signOut(auth);
         showToast('Berhasil keluar');
+        renderApp();
       }
     });
 
