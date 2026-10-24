@@ -76,7 +76,7 @@
       display: none !important;
     }
 
-    #btn-logout, #btn-open-config {
+    #btn-logout {
       -webkit-appearance: none;
       appearance: none;
       display: inline-flex;
@@ -140,26 +140,17 @@
 
   <!-- Header & Navigasi -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
         <div
-          class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
+          class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 flex-shrink-0">
           <i data-lucide="wallet" class="w-5 h-5"></i>
         </div>
-        <div>
-          <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">PengeluaranKu</h1>
-          <p class="text-xs text-slate-500">Pelacak Pengeluaran Pribadi Multi-Device</p>
-        </div>
+        <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-none m-0">PengeluaranKu</h1>
       </div>
 
       <!-- Area Akun Pengguna & Aksi -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Tombol Buka Konfigurasi Firebase jika belum diset (hidden karena config sudah tertanam) -->
-        <button id="btn-open-config"
-          class="hidden w-9 h-9 sm:w-auto sm:h-auto sm:px-2.5 sm:py-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full sm:rounded-xl text-xs font-medium transition-colors items-center justify-center flex-shrink-0"
-          title="Pengaturan Firebase">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-        </button>
 
         <!-- Container Info Akun Google (Jika Sudah Login) -->
         <div id="user-profile-container"
@@ -1184,7 +1175,7 @@
       setTimeout(() => configModal.classList.add('hidden'), 200);
     }
 
-    btnOpenConfig.addEventListener('click', openConfigModal);
+    if (btnOpenConfig) btnOpenConfig.addEventListener('click', openConfigModal);
     btnCloseConfigModal.addEventListener('click', closeConfigModal);
     btnCancelConfig.addEventListener('click', closeConfigModal);
 
