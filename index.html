@@ -136,10 +136,99 @@
         font-size: 16px !important;
       }
     }
+
+    /* Opening Splash Screen Animations */
+    @keyframes spinClockwise {
+      0% {
+        transform: rotate(0deg) scale(0.7);
+        opacity: 0;
+      }
+      20% {
+        transform: rotate(180deg) scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: rotate(1080deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes spinCounterClockwise {
+      0% {
+        transform: rotate(360deg) scale(0.6);
+        opacity: 0;
+      }
+      25% {
+        transform: rotate(180deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: rotate(-720deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.4), 0 0 60px rgba(5, 150, 105, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 45px rgba(16, 185, 129, 0.7), 0 0 90px rgba(5, 150, 105, 0.4);
+      }
+    }
+
+    .splash-spin-center {
+      animation: spinClockwise 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards, pulseGlow 1.8s ease-in-out infinite alternate;
+    }
+
+    .splash-orbit-text {
+      animation: spinCounterClockwise 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      transform-origin: center center;
+    }
   </style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen font-sans flex flex-col justify-between">
+
+  <!-- ================= OPENING SPLASH SCREEN ================= -->
+  <div id="opening-splash"
+    class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700 ease-out select-none">
+    
+    <!-- Area Animasi: Logo & Teks Orbit -->
+    <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+      
+      <!-- Lingkaran Teks Melingkar "PENGELUARANKU" Berputar Berlawanan Arah -->
+      <svg class="splash-orbit-text absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 300 300">
+        <defs>
+          <path id="textCirclePath" d="M 150, 150 m -108, 0 a 108,108 0 1,1 216,0 a 108,108 0 1,1 -216,0" fill="none" />
+        </defs>
+        <text class="text-[12px] font-bold uppercase tracking-[0.28em] fill-emerald-400 opacity-90 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">
+          <textPath href="#textCirclePath" startOffset="0%">
+            ✦ PENGELUARANKU ✦ PELACAK KEUANGAN ✦ PENGELUARANKU ✦
+          </textPath>
+        </text>
+      </svg>
+
+      <!-- Lingkaran Orbit Halus -->
+      <div class="absolute inset-4 rounded-full border border-dashed border-emerald-500/30 pointer-events-none"></div>
+
+      <!-- Logo Dompet Tengah Berputar Searah Jarum Jam -->
+      <div
+        class="splash-spin-center relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-2xl border border-emerald-400/40">
+        <i data-lucide="wallet" class="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-md"></i>
+      </div>
+
+    </div>
+
+    <!-- Teks Judul & Status Memuat -->
+    <div class="mt-4 text-center">
+      <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-1.5">
+        <span>PengeluaranKu</span>
+      </h2>
+      <p class="text-xs text-emerald-400/80 font-medium tracking-wider uppercase mt-1">Memuat Aplikasi...</p>
+    </div>
+
+  </div>
 
   <!-- Header & Navigasi -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
@@ -1309,7 +1398,90 @@
     filterCategory.addEventListener('change', renderApp);
     filterSearch.addEventListener('input', renderApp);
 
-    // --- 10. BOOTSTRAP ---
+    // --- 10. OPENING ANIMATION & AUDIO ---
+    function playOpeningSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+
+        const now = ctx.currentTime;
+
+        // Suara 1: Soft resonant whoosh / chime sweep
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(261.63, now); // C4
+        osc1.frequency.exponentialRampToValueAtTime(523.25, now + 0.35); // C5
+        osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.7); // E5
+        gain1.gain.setValueAtTime(0.001, now);
+        gain1.gain.linearRampToValueAtTime(0.18, now + 0.25);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 1.2);
+
+        // Suara 2: Warm chime harmonik tinggi (G5 -> C6)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(783.99, now + 0.3); // G5
+        osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 0.8); // C6
+        gain2.gain.setValueAtTime(0.001, now + 0.3);
+        gain2.gain.linearRampToValueAtTime(0.12, now + 0.5);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.3);
+        osc2.stop(now + 1.6);
+
+        // Suara 3: Sparkle completion chime saat transisi selesai
+        const osc3 = ctx.createOscillator();
+        const gain3 = ctx.createGain();
+        osc3.type = 'sine';
+        osc3.frequency.setValueAtTime(1318.51, now + 0.7); // E6
+        gain3.gain.setValueAtTime(0.001, now + 0.7);
+        gain3.gain.linearRampToValueAtTime(0.09, now + 0.85);
+        gain3.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+        osc3.connect(gain3);
+        gain3.connect(ctx.destination);
+        osc3.start(now + 0.7);
+        osc3.stop(now + 1.8);
+      } catch (err) {
+        // Abaikan jika browser membatasi autoplay audio sebelum interaksi
+        console.warn('Audio opening tidak dapat diputar otomatis:', err);
+      }
+    }
+
+    function initSplashScreen() {
+      const splashEl = document.getElementById('opening-splash');
+      if (!splashEl) return;
+
+      // Coba putar sound efek opening
+      playOpeningSound();
+
+      // Izinkan pemutaran suara bila interaksi pertama terjadi selama splash aktif
+      const triggerAudioOnTouch = () => {
+        playOpeningSound();
+        window.removeEventListener('pointerdown', triggerAudioOnTouch);
+      };
+      window.addEventListener('pointerdown', triggerAudioOnTouch, { once: true });
+
+      // Hilangkan splash screen setelah durasi animasi opening (2.3 detik)
+      setTimeout(() => {
+        splashEl.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          splashEl.remove();
+          window.removeEventListener('pointerdown', triggerAudioOnTouch);
+        }, 700);
+      }, 2300);
+    }
+
+    // --- 11. BOOTSTRAP ---
     function init() {
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -1317,6 +1489,9 @@
       const dd = String(today.getDate()).padStart(2, '0');
       txDateInput.value = `${yyyy}-${mm}-${dd}`;
       filterPeriodMonth.value = `${yyyy}-${mm}`;
+
+      // Inisialisasi opening screen
+      initSplashScreen();
 
       // Tampilkan data lokal dulu agar aplikasi langsung bisa dipakai,
       // lalu sinkron dengan Firebase setelah SDK selesai dimuat.
