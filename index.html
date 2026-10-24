@@ -694,25 +694,64 @@
     }
 
     // --- 6. FIRESTORE REALTIME SYNC (MULTI-DEVICE) ---
+    async function syncLocalToCloudOnLogin(uid) {
+      if (!db || !currentUser) return;
+      try {
+        // Ambil data lokal jika ada transaksi yang belum ada di cloud
+        const storedTx = localStorage.getItem(STORAGE_KEY_LOCAL_TX);
+        if (storedTx) {
+          const localList = JSON.parse(storedTx);
+          // Upload data transaksi lokal non-sampel ke akun
+          for (const tx of localList) {
+            if (tx && tx.id && !tx.id.startsWith('tx_sample_')) {
+              const docRef = doc(db, 'users', uid, 'transactions', tx.id);
+              await setDoc(docRef, {
+                date: tx.date,
+                category: tx.category,
+                name: tx.name,
+                amount: tx.amount,
+                createdAt: tx.createdAt || new Date().toISOString()
+              }, { merge: true });
+            }
+          }
+        }
+        // Upload budget lokal jika diset
+        const storedBudget = localStorage.getItem(STORAGE_KEY_LOCAL_BUDGET);
+        if (storedBudget && Number(storedBudget) > 0) {
+          const budgetDocRef = doc(db, 'users', uid, 'settings', 'budget');
+          await setDoc(budgetDocRef, { 
+            amount: Number(storedBudget), 
+            updatedAt: new Date().toISOString() 
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.warn('Sync local to cloud warning:', err);
+      }
+    }
+
     function setupFirestoreRealtime(uid) {
       if (!db) return;
       cloudAvailable = true;
 
-      // 1. Ambil target budget user
+      // Jalankan migrasi data offline/lokal ke cloud
+      syncLocalToCloudOnLogin(uid);
+
+      // 1. Ambil target budget user secara realtime
       const userSettingsRef = doc(db, 'users', uid, 'settings', 'budget');
       unsubscribeBudget = onSnapshot(userSettingsRef, (docSnap) => {
         if (docSnap.exists()) {
           monthlyBudget = Number(docSnap.data().amount) || 3000000;
+          persistLocal();
           renderApp();
         }
       }, (err) => handleCloudError(err, 'membaca budget'));
 
-      // 2. Realtime listener transaksi user
+      // 2. Realtime listener transaksi user dari cloud
       const txCollectionRef = collection(db, 'users', uid, 'transactions');
       unsubscribeFirestore = onSnapshot(txCollectionRef, (snapshot) => {
         const cloudTx = [];
-        snapshot.forEach((doc) => {
-          cloudTx.push({ id: doc.id, ...doc.data() });
+        snapshot.forEach((docSnap) => {
+          cloudTx.push({ id: docSnap.id, ...docSnap.data() });
         });
 
         // Urutkan berdasarkan tanggal terbaru
@@ -721,6 +760,8 @@
           amount: Number(t.amount)
         }));
 
+        // Simpan ke local cache juga
+        persistLocal();
         renderApp();
       }, (err) => {
         handleCloudError(err, 'membaca transaksi');
