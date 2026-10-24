@@ -3,8 +3,16 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Pelacak Pengeluaran Bulanan | PengeluaranKu</title>
+  <meta name="description" content="PengeluaranKu - pelacak pengeluaran bulanan dengan sinkronisasi Akun Google multi-device." />
+  <!-- PWA / iOS Home Screen -->
+  <meta name="theme-color" content="#059669" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PengeluaranKu" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,6 +49,29 @@
 
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+
+    /* Safe-area (notch / home indicator) saat dibuka dari Home Screen iOS */
+    header {
+      padding-top: env(safe-area-inset-top);
+    }
+
+    body>footer {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+    }
+
+    #toast {
+      bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    }
+
+    /* Cegah auto-zoom iOS saat fokus ke input (font < 16px) */
+    @media (max-width: 640px) {
+
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
     }
   </style>
 </head>
@@ -447,6 +478,8 @@
       getAuth,
       GoogleAuthProvider,
       signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult,
       signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -471,9 +504,16 @@
     };
 
     // --- 2. STATE APLIKASI ---
+    // Deteksi mode "Add to Home Screen" (standalone). Di mode ini popup login
+    // tidak bisa mengembalikan hasil ke aplikasi, jadi kita pakai redirect flow
+    // melalui proxy /__/auth/* di domain sendiri (lihat vercel.json) agar tidak
+    // terblokir storage partitioning / ITP di iOS.
+    const IS_STANDALONE = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const USE_REDIRECT_FLOW = IS_STANDALONE && location.protocol === 'https:';
+
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyDmnWIiGtvJLpEHvLaksxKncyBB2xxdnQ4",
-      authDomain: "trackingpengeluaran.firebaseapp.com",
+      authDomain: USE_REDIRECT_FLOW ? location.host : "trackingpengeluaran.firebaseapp.com",
       projectId: "trackingpengeluaran",
       storageBucket: "trackingpengeluaran.firebasestorage.app",
       messagingSenderId: "178658882225",
@@ -483,6 +523,7 @@
 
     const STORAGE_KEY_LOCAL_TX = 'pengeluaranku_transactions_local';
     const STORAGE_KEY_LOCAL_BUDGET = 'pengeluaranku_budget_local';
+    const STORAGE_KEY_FIREBASE = 'pengeluaranku_firebase_config';
 
     let transactions = [];
     let monthlyBudget = 3000000;
@@ -591,6 +632,12 @@
         const app = initializeApp(FIREBASE_CONFIG);
         auth = getAuth(app);
         db = getFirestore(app);
+
+        // Tangani hasil login redirect (mode Home Screen)
+        getRedirectResult(auth).catch((err) => {
+          console.error('Login redirect gagal:', err);
+          alert('Login Google gagal: ' + err.message);
+        });
 
         // Pantau Status Login Google
         onAuthStateChanged(auth, async (user) => {
@@ -961,10 +1008,24 @@
         openConfigModal();
         return;
       }
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       try {
-        const provider = new GoogleAuthProvider();
+        if (USE_REDIRECT_FLOW) {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
         await signInWithPopup(auth, provider);
       } catch (err) {
+        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
+          try {
+            await signInWithRedirect(auth, provider);
+            return;
+          } catch (e2) {
+            err = e2;
+          }
+        }
         console.error('Login gagal:', err);
         alert('Login Google dibatalkan atau gagal: ' + err.message);
       }

@@ -1,0 +1,10 @@
+{
+  "name": "PengeluaranKu - Pelacak Pengeluaran",
+  "short_name": "PengeluaranKu",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "lang": "id"
+}
