@@ -248,7 +248,7 @@
           <img id="user-avatar" src="" alt="Avatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-slate-300 object-cover flex-shrink-0" />
           <button id="btn-edit-username" type="button" class="hidden sm:block text-left pr-1 group cursor-pointer focus:outline-none" title="Klik untuk ubah username / nama tampilan">
             <div class="flex items-center gap-1">
-              <p id="user-name" class="text-xs font-bold text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors">User</p>
+              <p id="user-name" class="text-xs font-bold text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors">Username</p>
               <i data-lucide="pencil" class="w-2.5 h-2.5 text-slate-400 group-hover:text-emerald-600 transition-colors"></i>
             </div>
             <p id="user-email" class="text-[10px] text-slate-500 truncate max-w-[120px]">user@gmail.com</p>
@@ -895,8 +895,7 @@
       btnLoginGoogle.classList.add('hidden');
       userProfileContainer.classList.remove('hidden');
       userProfileContainer.classList.add('flex');
-      userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}`;
-      const displayName = customUsername || user.displayName || 'Pengguna';
+      const displayName = customUsername || 'Username';
       userName.textContent = displayName;
       userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
       userEmail.textContent = user.email || '';
@@ -946,7 +945,7 @@
           customUsername = localStorage.getItem(STORAGE_KEY_CUSTOM_USERNAME) || '';
         }
         if (currentUser) {
-          const finalName = customUsername || currentUser.displayName || 'Pengguna';
+          const finalName = customUsername || 'Username';
           userName.textContent = finalName;
           userAvatar.src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(finalName)}`;
         }
