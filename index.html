@@ -64,6 +64,30 @@
       bottom: calc(1.25rem + env(safe-area-inset-bottom));
     }
 
+    /* Pastikan header dan widget akun tampil presisi di iOS WebKit / Safari */
+    #user-profile-container {
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+    }
+
+    #btn-logout, #btn-open-config {
+      -webkit-appearance: none;
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      line-height: 1;
+    }
+
+    #user-avatar {
+      display: block;
+      flex-shrink: 0;
+      border-radius: 9999px;
+    }
+
     /* Cegah auto-zoom iOS saat fokus ke input (font < 16px) */
     @media (max-width: 640px) {
 
