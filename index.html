@@ -213,13 +213,31 @@
     <!-- Bar Pemilih Bulan & Target Budget -->
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-      <div class="flex items-center justify-between sm:justify-start gap-2.5 flex-wrap">
-        <div class="flex items-center gap-2">
-          <i data-lucide="calendar" class="w-5 h-5 text-emerald-600 flex-shrink-0"></i>
-          <span class="text-sm font-semibold text-slate-700">Periode:</span>
+      <div class="flex items-center justify-between sm:justify-start gap-2 flex-wrap">
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl">
+          <button id="btn-prev-month" type="button"
+            class="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-white rounded-lg transition-all"
+            title="Bulan Sebelumnya">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          
+          <div class="flex items-center gap-2 px-1.5">
+            <i data-lucide="calendar" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+            <input type="month" id="filter-period-month"
+              class="border-0 bg-transparent text-slate-800 text-sm font-bold focus:outline-none cursor-pointer p-0" />
+          </div>
+
+          <button id="btn-next-month" type="button"
+            class="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-white rounded-lg transition-all"
+            title="Bulan Berikutnya">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
         </div>
-        <input type="month" id="filter-period-month"
-          class="border border-slate-300 text-slate-700 text-sm font-medium rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 cursor-pointer flex-grow sm:flex-grow-0" />
+
+        <button id="btn-current-month" type="button"
+          class="text-xs font-semibold text-slate-600 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
+          Bulan Ini
+        </button>
       </div>
 
       <div class="flex items-center sm:justify-end">
@@ -237,7 +255,7 @@
       <div
         class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pengeluaran Bulan Ini</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500" id="card-expense-label">Pengeluaran Bulan Ini</span>
           <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
             <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
           </div>
@@ -363,7 +381,10 @@
             <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <i data-lucide="list-collapse" class="w-4 h-4"></i>
             </div>
-            <h2 class="text-base font-bold text-slate-800">Riwayat Transaksi</h2>
+            <div>
+              <h2 class="text-base font-bold text-slate-800 leading-tight">Riwayat Transaksi</h2>
+              <p class="text-[11px] text-slate-500 font-medium" id="history-period-label">Bulan Ini</p>
+            </div>
           </div>
 
           <!-- Filter Kategori & Search -->
@@ -394,9 +415,8 @@
           <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
             <i data-lucide="receipt" class="w-7 h-7"></i>
           </div>
-          <p class="text-sm font-semibold text-slate-700">Belum ada transaksi</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-xs">Tambahkan pengeluaran baru menggunakan formulir di sebelah
-            kiri.</p>
+          <p class="text-sm font-semibold text-slate-700" id="tx-empty-title">Belum ada transaksi</p>
+          <p class="text-xs text-slate-400 mt-1 max-w-xs" id="tx-empty-desc">Tambahkan pengeluaran baru menggunakan formulir di sebelah kiri.</p>
         </div>
 
         <!-- Footer Card Riwayat -->
@@ -569,9 +589,14 @@
 
     // --- 3. ELEMEN DOM ---
     const filterPeriodMonth = document.getElementById('filter-period-month');
+    const btnPrevMonth = document.getElementById('btn-prev-month');
+    const btnNextMonth = document.getElementById('btn-next-month');
+    const btnCurrentMonth = document.getElementById('btn-current-month');
     const filterCategory = document.getElementById('filter-category');
     const filterSearch = document.getElementById('filter-search');
 
+    const cardExpenseLabel = document.getElementById('card-expense-label');
+    const historyPeriodLabel = document.getElementById('history-period-label');
     const cardTotalExpense = document.getElementById('card-total-expense');
     const cardTxCount = document.getElementById('card-tx-count');
     const cardTargetBudget = document.getElementById('card-target-budget');
@@ -590,6 +615,8 @@
 
     const txListContainer = document.getElementById('tx-list-container');
     const txEmptyState = document.getElementById('tx-empty-state');
+    const txEmptyTitle = document.getElementById('tx-empty-title');
+    const txEmptyDesc = document.getElementById('tx-empty-desc');
     const filteredSummaryText = document.getElementById('filtered-summary-text');
     const btnClearAll = document.getElementById('btn-clear-all');
     const btnExportCsv = document.getElementById('btn-export-csv');
@@ -643,6 +670,14 @@
       const [year, month, day] = dateStr.split('-');
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
       return `${parseInt(day, 10)} ${months[parseInt(month, 10) - 1]} ${year}`;
+    }
+
+    function formatMonthID(monthStr) {
+      if (!monthStr) return '';
+      const [year, month] = monthStr.split('-');
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const mIdx = parseInt(month, 10) - 1;
+      return (monthNames[mIdx] || '') + ' ' + year;
     }
 
     let toastTimer = null;
@@ -931,7 +966,16 @@
       const remainingBudget = monthlyBudget - totalExpense;
       const usagePercentage = monthlyBudget > 0 ? Math.round((totalExpense / monthlyBudget) * 100) : 0;
 
-      // Update Card
+      // Update Card Labels & Periode
+      const monthDisplay = formatMonthID(selectedMonth);
+      if (cardExpenseLabel) {
+        cardExpenseLabel.textContent = monthDisplay ? `Pengeluaran ${monthDisplay}` : 'Pengeluaran Bulan Ini';
+      }
+      if (historyPeriodLabel) {
+        historyPeriodLabel.textContent = monthDisplay ? `Periode: ${monthDisplay}` : 'Semua Periode';
+      }
+
+      // Update Card Values
       cardTotalExpense.textContent = formatIDR(totalExpense);
       cardTxCount.textContent = `${currentMonthTx.length} transaksi di bulan ini`;
       cardTargetBudget.textContent = formatIDR(monthlyBudget);
@@ -987,6 +1031,13 @@
       if (items.length === 0) {
         txEmptyState.classList.remove('hidden');
         filteredSummaryText.textContent = 'Menampilkan 0 transaksi';
+        const mLabel = formatMonthID(filterPeriodMonth.value);
+        if (txEmptyTitle) {
+          txEmptyTitle.textContent = mLabel ? `Tidak ada transaksi di ${mLabel}` : 'Belum ada transaksi';
+        }
+        if (txEmptyDesc) {
+          txEmptyDesc.textContent = 'Gunakan tombol panah bulan di atas atau formulir di samping untuk mencatat pengeluaran.';
+        }
         return;
       }
 
@@ -1223,6 +1274,33 @@
       updateBudget(newBudget);
       closeBudgetModal();
     });
+
+    function shiftMonth(offset) {
+      let val = filterPeriodMonth.value;
+      let [yyyy, mm] = (val || '').split('-').map(Number);
+      if (!yyyy || !mm) {
+        const now = new Date();
+        yyyy = now.getFullYear();
+        mm = now.getMonth() + 1;
+      }
+      const targetDate = new Date(yyyy, mm - 1 + offset, 1);
+      const newY = targetDate.getFullYear();
+      const newM = String(targetDate.getMonth() + 1).padStart(2, '0');
+      filterPeriodMonth.value = `${newY}-${newM}`;
+      renderApp();
+    }
+
+    if (btnPrevMonth) btnPrevMonth.addEventListener('click', () => shiftMonth(-1));
+    if (btnNextMonth) btnNextMonth.addEventListener('click', () => shiftMonth(1));
+    if (btnCurrentMonth) {
+      btnCurrentMonth.addEventListener('click', () => {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        filterPeriodMonth.value = `${yyyy}-${mm}`;
+        renderApp();
+      });
+    }
 
     filterPeriodMonth.addEventListener('change', renderApp);
     filterCategory.addEventListener('change', renderApp);
