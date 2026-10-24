@@ -20,7 +20,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -473,25 +473,12 @@
 
   <!-- ================= FIREBASE SDK & JAVASCRIPT ================= -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signInWithRedirect,
-      getRedirectResult,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      doc,
-      setDoc,
-      deleteDoc,
-      onSnapshot,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    // Firebase SDK dimuat secara dinamis (lihat initFirebase) supaya kalau CDN /
+    // jaringan gagal, seluruh tombol & fitur lokal tetap berfungsi.
+    const FIREBASE_SDK_BASE = 'https://www.gstatic.com/firebasejs/10.9.0';
+    let initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+      getRedirectResult, signOut, onAuthStateChanged;
+    let getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot;
 
     // --- 1. KONFIGURASI KATEGORI ---
     const CATEGORY_META = {
@@ -528,6 +515,8 @@
     let transactions = [];
     let monthlyBudget = 3000000;
     let currentUser = null;
+    let cloudAvailable = true; // false jika Firestore menolak akses (mis. rules kedaluwarsa)
+    let unsubscribeBudget = null;
     let db = null;
     let auth = null;
     let unsubscribeFirestore = null;
@@ -610,14 +599,28 @@
       return `${parseInt(day, 10)} ${months[parseInt(month, 10) - 1]} ${year}`;
     }
 
-    function showToast(msg) {
+    let toastTimer = null;
+    let toastLockUntil = 0; // pesan error tidak langsung tertimpa pesan biasa
+    function showToast(msg, isError = false) {
+      if (!isError && Date.now() < toastLockUntil) return;
+      if (isError) toastLockUntil = Date.now() + 5000;
       toastMessage.textContent = msg;
       toastEl.classList.remove('translate-y-20', 'opacity-0');
       toastEl.classList.add('translate-y-0', 'opacity-100');
-      setTimeout(() => {
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
         toastEl.classList.remove('translate-y-0', 'opacity-100');
         toastEl.classList.add('translate-y-20', 'opacity-0');
-      }, 2500);
+      }, isError ? 5000 : 2500);
+    }
+
+    // Render ikon Lucide tanpa pernah menghentikan alur aplikasi jika library gagal.
+    function refreshIcons() {
+      try {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+      } catch (e) {
+        console.warn('Gagal render ikon:', e);
+      }
     }
 
     function escapeHTML(str) {
@@ -627,8 +630,17 @@
     }
 
     // --- 5. INITIALIZE FIREBASE & AUTH ---
-    function initFirebase() {
+    async function initFirebase() {
       try {
+        const [appMod, authMod, fsMod] = await Promise.all([
+          import(`${FIREBASE_SDK_BASE}/firebase-app.js`),
+          import(`${FIREBASE_SDK_BASE}/firebase-auth.js`),
+          import(`${FIREBASE_SDK_BASE}/firebase-firestore.js`)
+        ]);
+        ({ initializeApp } = appMod);
+        ({ getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = authMod);
+        ({ getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } = fsMod);
+
         const app = initializeApp(FIREBASE_CONFIG);
         auth = getAuth(app);
         db = getFirestore(app);
@@ -671,7 +683,8 @@
     }
 
     function updateUIAuthLoggedOut() {
-      if (unsubscribeFirestore) unsubscribeFirestore();
+      if (unsubscribeFirestore) { unsubscribeFirestore(); unsubscribeFirestore = null; }
+      if (unsubscribeBudget) { unsubscribeBudget(); unsubscribeBudget = null; }
       btnLoginGoogle.classList.remove('hidden');
       userProfileContainer.classList.add('hidden');
       userProfileContainer.classList.remove('flex');
@@ -683,15 +696,16 @@
     // --- 6. FIRESTORE REALTIME SYNC (MULTI-DEVICE) ---
     function setupFirestoreRealtime(uid) {
       if (!db) return;
+      cloudAvailable = true;
 
       // 1. Ambil target budget user
       const userSettingsRef = doc(db, 'users', uid, 'settings', 'budget');
-      onSnapshot(userSettingsRef, (docSnap) => {
+      unsubscribeBudget = onSnapshot(userSettingsRef, (docSnap) => {
         if (docSnap.exists()) {
           monthlyBudget = Number(docSnap.data().amount) || 3000000;
           renderApp();
         }
-      });
+      }, (err) => handleCloudError(err, 'membaca budget'));
 
       // 2. Realtime listener transaksi user
       const txCollectionRef = collection(db, 'users', uid, 'transactions');
@@ -709,13 +723,45 @@
 
         renderApp();
       }, (err) => {
-        console.error('Error Firestore snapshot:', err);
+        handleCloudError(err, 'membaca transaksi');
+        loadLocalFallback();
       });
     }
 
+    // Jika Firestore menolak / gagal, aplikasi pindah ke mode simpan lokal
+    // supaya semua fitur tetap bisa dipakai.
+    function handleCloudError(err, action) {
+      console.error(`Firestore gagal ${action}:`, err);
+      if (!cloudAvailable) return;
+      cloudAvailable = false;
+      const denied = err && (err.code === 'permission-denied' || err.code === 'unauthenticated');
+      const msg = denied
+        ? 'Akses Firestore ditolak (cek Firestore Rules). Data sementara disimpan di perangkat ini.'
+        : 'Gagal terhubung ke cloud. Data sementara disimpan di perangkat ini.';
+      showToast(msg, true);
+      authStatusBar.classList.add('hidden');
+    }
+
+    function useCloud() {
+      return Boolean(currentUser && db && cloudAvailable);
+    }
+
+    function persistLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify(transactions));
+        localStorage.setItem(STORAGE_KEY_LOCAL_BUDGET, String(monthlyBudget));
+      } catch (e) {
+        console.error('Gagal menyimpan ke localStorage:', e);
+      }
+    }
+
     // --- 7. OPERASI TRANSAKSI & BUDGET ---
+    // Semua operasi bersifat optimistis: UI langsung diperbarui, lalu sinkron ke cloud.
     async function addTransaction(newTx) {
-      if (currentUser && db) {
+      transactions.unshift(newTx);
+      renderApp();
+
+      if (useCloud()) {
         try {
           const docRef = doc(db, 'users', currentUser.uid, 'transactions', newTx.id);
           await setDoc(docRef, {
@@ -726,68 +772,66 @@
             createdAt: new Date().toISOString()
           });
           showToast('Tersimpan & tersinkron ke Akun Google');
+          return;
         } catch (e) {
-          console.error('Gagal simpan ke Firestore:', e);
-          showToast('Gagal simpan ke cloud');
+          handleCloudError(e, 'menyimpan transaksi');
         }
-      } else {
-        // Fallback simpan lokal jika belum login
-        transactions.unshift(newTx);
-        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify(transactions));
-        renderApp();
-        showToast('Tersimpan di perangkat lokal');
       }
+      persistLocal();
+      showToast('Tersimpan di perangkat lokal');
     }
 
     async function deleteTransaction(id) {
-      if (currentUser && db) {
+      transactions = transactions.filter(t => t.id !== id);
+      renderApp();
+
+      if (useCloud()) {
         try {
           await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
           showToast('Transaksi dihapus dari cloud');
+          return;
         } catch (e) {
-          console.error('Gagal hapus transaksi di Firestore:', e);
+          handleCloudError(e, 'menghapus transaksi');
         }
-      } else {
-        transactions = transactions.filter(t => t.id !== id);
-        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify(transactions));
-        renderApp();
-        showToast('Transaksi dihapus');
       }
+      persistLocal();
+      showToast('Transaksi dihapus');
     }
 
     async function clearAllTransactions() {
-      if (currentUser && db) {
+      const toDelete = [...transactions];
+      transactions = [];
+      renderApp();
+
+      if (useCloud()) {
         try {
-          for (const tx of transactions) {
-            await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', tx.id));
-          }
+          await Promise.all(toDelete.map(tx => deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', tx.id))));
           showToast('Semua transaksi akun dihapus');
+          return;
         } catch (e) {
-          console.error(e);
+          handleCloudError(e, 'menghapus semua transaksi');
         }
-      } else {
-        transactions = [];
-        localStorage.setItem(STORAGE_KEY_LOCAL_TX, JSON.stringify([]));
-        renderApp();
-        showToast('Semua transaksi lokal dihapus');
       }
+      persistLocal();
+      showToast('Semua transaksi dihapus');
     }
 
     async function updateBudget(newBudget) {
       monthlyBudget = newBudget;
-      if (currentUser && db) {
+      renderApp();
+
+      if (useCloud()) {
         try {
           const budgetDocRef = doc(db, 'users', currentUser.uid, 'settings', 'budget');
           await setDoc(budgetDocRef, { amount: newBudget, updatedAt: new Date().toISOString() });
           showToast('Target budget tersinkron ke Akun Google');
+          return;
         } catch (e) {
-          console.error('Gagal update budget di Firestore:', e);
+          handleCloudError(e, 'menyimpan budget');
         }
-      } else {
-        localStorage.setItem(STORAGE_KEY_LOCAL_BUDGET, newBudget.toString());
-        renderApp();
-        showToast('Budget lokal diperbarui');
       }
+      persistLocal();
+      showToast('Budget diperbarui');
     }
 
     function loadLocalFallback() {
@@ -872,7 +916,7 @@
       filteredTx.sort((a, b) => new Date(b.date) - new Date(a.date));
       renderTransactionList(filteredTx);
 
-      if (window.lucide) window.lucide.createIcons();
+      refreshIcons();
     }
 
     function renderTransactionList(items) {
@@ -1005,7 +1049,7 @@
     // --- 9. EVENT HANDLERS GOOGLE AUTH & CONFIG ---
     async function handleLoginGoogle() {
       if (!auth) {
-        openConfigModal();
+        alert('Layanan login Google belum siap / gagal dimuat. Periksa koneksi internet lalu muat ulang halaman. Fitur lain tetap bisa dipakai (data disimpan di perangkat ini).');
         return;
       }
       const provider = new GoogleAuthProvider();
@@ -1126,8 +1170,11 @@
       txDateInput.value = `${yyyy}-${mm}-${dd}`;
       filterPeriodMonth.value = `${yyyy}-${mm}`;
 
+      // Tampilkan data lokal dulu agar aplikasi langsung bisa dipakai,
+      // lalu sinkron dengan Firebase setelah SDK selesai dimuat.
+      loadLocalFallback();
+      refreshIcons();
       initFirebase();
-      if (window.lucide) window.lucide.createIcons();
     }
 
     init();
