@@ -65,11 +65,15 @@
     }
 
     /* Pastikan header dan widget akun tampil presisi di iOS WebKit / Safari */
-    #user-profile-container {
-      display: inline-flex;
+    #user-profile-container:not(.hidden) {
+      display: inline-flex !important;
       align-items: center;
       box-sizing: border-box;
       -webkit-appearance: none;
+    }
+
+    #user-profile-container.hidden {
+      display: none !important;
     }
 
     #btn-logout, #btn-open-config {
