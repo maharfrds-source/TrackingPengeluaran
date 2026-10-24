@@ -96,22 +96,22 @@
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Tombol Buka Konfigurasi Firebase jika belum diset -->
         <button id="btn-open-config"
-          class="p-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors"
+          class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2.5 sm:py-2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full sm:rounded-xl text-xs font-medium transition-colors flex items-center justify-center flex-shrink-0"
           title="Pengaturan Firebase">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
 
         <!-- Container Info Akun Google (Jika Sudah Login) -->
         <div id="user-profile-container"
-          class="hidden items-center gap-2.5 bg-slate-100/80 px-2.5 py-1.5 rounded-xl border border-slate-200/70">
-          <img id="user-avatar" src="" alt="Avatar" class="w-7 h-7 rounded-full border border-slate-300 object-cover" />
-          <div class="hidden sm:block text-left">
+          class="hidden items-center gap-2 bg-slate-100/90 hover:bg-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-full sm:rounded-xl border border-slate-200 transition-all shadow-xs">
+          <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border border-slate-300 object-cover flex-shrink-0" />
+          <div class="hidden sm:block text-left pr-1">
             <p id="user-name" class="text-xs font-bold text-slate-800 leading-tight">User</p>
             <p id="user-email" class="text-[10px] text-slate-500 truncate max-w-[120px]">user@gmail.com</p>
           </div>
-          <button id="btn-logout" class="p-1 text-slate-400 hover:text-rose-600 transition-colors ml-1"
+          <button id="btn-logout" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-full transition-colors flex items-center justify-center flex-shrink-0"
             title="Keluar / Logout">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
