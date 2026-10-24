@@ -1396,61 +1396,78 @@
     filterSearch.addEventListener('input', renderApp);
 
     // --- 10. OPENING ANIMATION & AUDIO ---
+    let openingAudioPlayed = false;
+    let sharedAudioCtx = null;
+
     function playOpeningSound() {
+      if (openingAudioPlayed) return;
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        if (ctx.state === 'suspended') {
-          ctx.resume();
+        
+        if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+          sharedAudioCtx = new AudioCtx();
         }
+        const ctx = sharedAudioCtx;
 
-        const now = ctx.currentTime;
+        const startAudio = () => {
+          if (openingAudioPlayed) return;
+          openingAudioPlayed = true;
 
-        // Suara 1: Soft resonant whoosh / chime sweep pelan & lembut
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(261.63, now); // C4
-        osc1.frequency.exponentialRampToValueAtTime(523.25, now + 0.8); // C5
-        osc1.frequency.exponentialRampToValueAtTime(659.25, now + 1.5); // E5
-        gain1.gain.setValueAtTime(0.001, now);
-        gain1.gain.linearRampToValueAtTime(0.15, now + 0.6);
-        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 2.5);
+          const now = ctx.currentTime;
 
-        // Suara 2: Warm chime harmonik tinggi yang menenangkan (G5 -> C6)
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(783.99, now + 0.8); // G5
-        osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 1.8); // C6
-        gain2.gain.setValueAtTime(0.001, now + 0.8);
-        gain2.gain.linearRampToValueAtTime(0.10, now + 1.3);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.8);
-        osc2.stop(now + 3.0);
+          // Suara 1: Soft resonant whoosh / chime sweep pelan & lembut
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(261.63, now); // C4
+          osc1.frequency.exponentialRampToValueAtTime(523.25, now + 0.8); // C5
+          osc1.frequency.exponentialRampToValueAtTime(659.25, now + 1.5); // E5
+          gain1.gain.setValueAtTime(0.001, now);
+          gain1.gain.linearRampToValueAtTime(0.18, now + 0.6);
+          gain1.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 2.5);
 
-        // Suara 3: Sparkle completion chime lembut
-        const osc3 = ctx.createOscillator();
-        const gain3 = ctx.createGain();
-        osc3.type = 'sine';
-        osc3.frequency.setValueAtTime(1318.51, now + 1.6); // E6
-        gain3.gain.setValueAtTime(0.001, now + 1.6);
-        gain3.gain.linearRampToValueAtTime(0.07, now + 2.0);
-        gain3.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
-        osc3.connect(gain3);
-        gain3.connect(ctx.destination);
-        osc3.start(now + 1.6);
-        osc3.stop(now + 3.2);
+          // Suara 2: Warm chime harmonik tinggi yang menenangkan (G5 -> C6)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(783.99, now + 0.8); // G5
+          osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 1.8); // C6
+          gain2.gain.setValueAtTime(0.001, now + 0.8);
+          gain2.gain.linearRampToValueAtTime(0.12, now + 1.3);
+          gain2.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + 0.8);
+          osc2.stop(now + 3.0);
+
+          // Suara 3: Sparkle completion chime lembut
+          const osc3 = ctx.createOscillator();
+          const gain3 = ctx.createGain();
+          osc3.type = 'sine';
+          osc3.frequency.setValueAtTime(1318.51, now + 1.6); // E6
+          gain3.gain.setValueAtTime(0.001, now + 1.6);
+          gain3.gain.linearRampToValueAtTime(0.08, now + 2.0);
+          gain3.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+          osc3.connect(gain3);
+          gain3.connect(ctx.destination);
+          osc3.start(now + 1.6);
+          osc3.stop(now + 3.2);
+        };
+
+        if (ctx.state === 'suspended') {
+          ctx.resume().then(() => {
+            startAudio();
+          }).catch(() => {});
+        } else {
+          startAudio();
+        }
       } catch (err) {
-        // Abaikan jika browser membatasi autoplay audio sebelum interaksi
-        console.warn('Audio opening tidak dapat diputar otomatis:', err);
+        console.warn('Audio opening:', err);
       }
     }
 
@@ -1458,22 +1475,24 @@
       const splashEl = document.getElementById('opening-splash');
       if (!splashEl) return;
 
-      // Coba putar sound efek opening
+      // Coba langsung jalankan audio secara otomatis
       playOpeningSound();
 
-      // Izinkan pemutaran suara bila interaksi pertama terjadi selama splash aktif
-      const triggerAudioOnTouch = () => {
+      // Safari iOS & Windows Chrome Autoplay Unlock:
+      // Setiap klik / sentuhan di layar saat splash aktif langsung meng-unlock dan membunyikan sound
+      const unlockAudioEvents = ['pointerdown', 'touchstart', 'mousedown', 'keydown'];
+      const onUserInteract = () => {
         playOpeningSound();
-        window.removeEventListener('pointerdown', triggerAudioOnTouch);
+        unlockAudioEvents.forEach(evt => window.removeEventListener(evt, onUserInteract, true));
       };
-      window.addEventListener('pointerdown', triggerAudioOnTouch, { once: true });
+      unlockAudioEvents.forEach(evt => window.addEventListener(evt, onUserInteract, { capture: true, once: true }));
 
       // Hilangkan splash screen setelah durasi animasi pelan (3.6 detik)
       setTimeout(() => {
         splashEl.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => {
           splashEl.remove();
-          window.removeEventListener('pointerdown', triggerAudioOnTouch);
+          unlockAudioEvents.forEach(evt => window.removeEventListener(evt, onUserInteract, true));
         }, 700);
       }, 3600);
     }
